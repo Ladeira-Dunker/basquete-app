@@ -321,6 +321,10 @@
     .community-card h3 { margin: 0; font-size: 16px; }
     .community-card p { margin: 6px 0 0; color: #b6bfce; font-size: 13px; line-height: 1.5; }
     .community-status { min-height: 22px; color: #b6bfce; }
+    .community-invite-panel { margin: 20px 0; padding: 16px; border: 1px solid #303a4b; border-radius: 12px; background: #192130; }
+    .community-invite-panel h2 { margin: 0 0 6px; }
+    .community-invite-panel p { margin: 6px 0 0; }
+    .community-invite-panel button { margin-top: 12px; }
     .community-team-controls { display: flex; align-items: end; gap: 10px; }
     .community-team-controls .field { flex: 1; }
     .community-team-controls button { flex: 0 0 auto; width: auto; margin: 0 0 0; }
@@ -780,6 +784,18 @@
       <div id="community-unconfigured" class="privacy-note" hidden>
         <strong>Comunidade online ainda não configurada.</strong>
         <p>Crie um projeto Supabase, aplique <code>supabase/schema.sql</code> e configure a URL e a chave pública em <code>supabase-config.js</code>.</p>
+      </div>
+
+      <div id="community-invite-panel" class="community-invite-panel" hidden>
+        <form id="community-invite-form">
+          <h2>Entrar com convite</h2>
+          <p class="help">Cole o link que recebeu. Se ainda não entrou, faça login ou crie uma conta para concluir a entrada no time.</p>
+          <label class="field">
+            <span>Link de convite</span>
+            <input id="community-invite-input" name="inviteLink" type="url" required placeholder="https://.../?invite=...">
+          </label>
+          <button type="submit">Usar convite</button>
+        </form>
       </div>
 
       <div id="community-auth-panel" hidden>
@@ -1350,8 +1366,9 @@
       console.error(error);
       status.textContent = "Não foi possível carregar o perfil salvo.";
     }
-    showAppTab(hasSavedProfile ? "training" : "games");
-    if (!hasSavedProfile) {
+    const hasInviteLink = new URLSearchParams(window.location.search).has("invite");
+    showAppTab(hasInviteLink ? "community" : hasSavedProfile ? "training" : "games");
+    if (!hasSavedProfile && !hasInviteLink) {
       profileDialog.showModal();
       profileMenuButton.setAttribute("aria-expanded", "true");
     }

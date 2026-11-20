@@ -47,6 +47,7 @@ O Vercel publica a PWA e o cliente da comunidade como arquivos estáticos. O ser
 
 - Criar uma conta não publica estatísticas.
 - O treinador cria um time e pode gerar um link de convite, válido por 14 dias. Gerar um novo link revoga o anterior.
+- Quem recebe pode abrir o link compartilhado ou colá-lo no campo **Entrar com convite** da aba Comunidade. Se ainda não tiver conta, deve colar o link primeiro e depois criar a conta ou entrar; a adesão será concluída após a autenticação.
 - Jogadores precisam criar uma conta ou entrar para aceitar um convite. A adesão é explícita.
 - Estatísticas começam desativadas. Se o jogador autorizar, são enviados apenas totais e médias calculados a partir das partidas salvas **neste navegador** — não são enviados adversários, campeonatos, observações ou registros individuais.
 - Desativar a opção remove os totais compartilhados daquele time. Cada jogador escolhe a permissão separadamente para cada time.

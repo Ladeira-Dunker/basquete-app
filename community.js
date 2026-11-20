@@ -4,6 +4,9 @@
   const authPanel = document.querySelector("#community-auth-panel");
   const dashboard = document.querySelector("#community-dashboard");
   const status = document.querySelector("#community-status");
+  const invitePanel = document.querySelector("#community-invite-panel");
+  const inviteForm = document.querySelector("#community-invite-form");
+  const inviteInput = document.querySelector("#community-invite-input");
   const teamSelect = document.querySelector("#community-team-select");
   const teamView = document.querySelector("#community-team-view");
   const inviteOutput = document.querySelector("#community-invite-output");
@@ -52,12 +55,14 @@
   let selectedTeam = null;
   let activeInviteId = null;
   let pendingInviteToken = null;
+  const inviteTokenPattern = /^[A-Za-z0-9_-]{40,60}$/;
 
   const currentUrl = new URL(window.location.href);
   const inviteFromUrl = currentUrl.searchParams.get("invite");
   if (inviteFromUrl) {
-    if (/^[A-Za-z0-9_-]{40,60}$/.test(inviteFromUrl)) {
+    if (inviteTokenPattern.test(inviteFromUrl)) {
       pendingInviteToken = inviteFromUrl;
+      inviteInput.value = currentUrl.toString();
     } else {
       status.textContent = "Este link de convite parece inválido.";
     }
@@ -73,6 +78,25 @@
   function getError(result) {
     if (result.error) throw result.error;
     return result.data;
+  }
+
+  function readInviteToken(value) {
+    let inviteUrl;
+    try {
+      inviteUrl = new URL(value.trim());
+    } catch {
+      throw new Error("Cole o link completo que recebeu.");
+    }
+
+    if (!["http:", "https:"].includes(inviteUrl.protocol)) {
+      throw new Error("O link de convite precisa começar com http:// ou https://.");
+    }
+
+    const token = inviteUrl.searchParams.get("invite");
+    if (!token || !inviteTokenPattern.test(token)) {
+      throw new Error("Esse link não contém um convite válido do Quadra.");
+    }
+    return token;
   }
 
   function addText(parent, tag, text, className) {
@@ -276,7 +300,7 @@
   }
 
   async function joinPendingInvite() {
-    if (!pendingInviteToken || !currentUser) return;
+    if (!pendingInviteToken || !currentUser) return false;
     try {
       getError(await client.rpc("join_team_by_invite", {
         p_token: pendingInviteToken
@@ -284,10 +308,34 @@
       pendingInviteToken = null;
       await loadTeams();
       status.textContent = "Você entrou no time pelo convite.";
+      return true;
     } catch (error) {
       showError("Não foi possível entrar pelo convite", error);
+      return false;
     }
   }
+
+  invitePanel.hidden = false;
+  if (pendingInviteToken) {
+    status.textContent = "Convite reconhecido. Entre na sua conta ou crie uma conta para concluir a entrada no time.";
+  }
+  inviteForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      pendingInviteToken = readInviteToken(inviteInput.value);
+    } catch (error) {
+      status.textContent = error.message;
+      return;
+    }
+
+    if (!currentUser) {
+      status.textContent = "Convite reconhecido. Entre na sua conta ou crie uma conta para concluir a entrada no time.";
+      return;
+    }
+
+    status.textContent = "Aceitando convite...";
+    if (await joinPendingInvite()) inviteForm.reset();
+  });
 
   async function showSignedIn(user) {
     currentUser = user;
