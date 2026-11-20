@@ -24,7 +24,7 @@ Essa chave pública é usada no navegador e fica protegida pelas políticas RLS 
 
 1. Envie o projeto a um repositório GitHub privado ou público.
 2. Importe esse repositório no Vercel e escolha **Other** como framework.
-3. Deixe o comando de build vazio e defina o diretório de saída como `.` (raiz do projeto).
+3. Use `npm run build` como comando de build e `dist` como diretório de saída. O script copia apenas os arquivos estáticos necessários para a PWA, evitando que o Vercel tente iniciar o servidor Node local.
 4. Publique e confirme que o app abre por HTTPS. O `.vercelignore` exclui `.env` e o servidor local do pacote estático.
 5. Se o endereço público mudar, atualize as URLs em **Authentication → URL Configuration** no Supabase.
 
