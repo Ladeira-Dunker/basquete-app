@@ -1,0 +1,2333 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10151f">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <title>Quadra — Meu jogador</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px 16px 112px;
+      background: #10151f;
+      color: #f4f6fa;
+      font-family: Arial, sans-serif;
+    }
+
+    main { max-width: 680px; margin: 0 auto; }
+
+    .brand {
+      color: #ff9f43;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .eyebrow {
+      margin: 40px 0 8px;
+      color: #ff9f43;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    h1 { margin: 0; font-size: clamp(32px, 8vw, 48px); }
+    h2 { margin: 28px 0 6px; font-size: 20px; }
+
+    .intro, .help { color: #b6bfce; line-height: 1.5; }
+
+    form {
+      margin-top: 24px;
+      padding: 22px;
+      border: 1px solid #303a4b;
+      border-radius: 16px;
+      background: #192130;
+    }
+
+    .field { display: block; margin-top: 18px; }
+
+    .field > span, .skill-title {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #3b4658;
+      border-radius: 9px;
+      background: #10151f;
+      color: #f4f6fa;
+      font: inherit;
+    }
+
+    textarea { min-height: 84px; resize: vertical; }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .skill { margin-top: 16px; }
+    .skill label { display: flex; justify-content: space-between; }
+
+    .avatar-builder {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.8fr) minmax(220px, 1.2fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .avatar-card {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      min-height: 270px;
+      padding: 18px;
+      border: 1px solid #3b4658;
+      border-radius: 14px;
+      background: radial-gradient(ellipse at 50% 25%, #35435b 0, #192130 65%);
+      text-align: center;
+    }
+
+    .avatar-art { width: min(100%, 190px); height: auto; }
+    .avatar-name { margin: 8px 0 2px; color: #ff9f43; font-size: 20px; font-weight: bold; }
+    .avatar-position { margin: 0; color: #b6bfce; font-size: 13px; }
+    .avatar-ball {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: ball-bounce 900ms ease-in-out infinite;
+    }
+
+    .avatar-art #avatar-left-arm, .avatar-art #avatar-right-arm {
+      transform-box: fill-box;
+      transition: transform 420ms ease;
+    }
+
+    .avatar-art #avatar-left-arm { transform-origin: 80% 4%; }
+    .avatar-art #avatar-right-arm { transform-origin: 20% 4%; }
+    #avatar-ball-shadow { transition: opacity 240ms ease; }
+
+    .avatar-art.is-shooting #avatar-left-arm { transform: rotate(138deg); }
+    .avatar-art.is-shooting #avatar-right-arm { transform: rotate(-138deg); }
+    .avatar-art.is-shooting .avatar-ball { animation: avatar-shot 1200ms cubic-bezier(.2,.7,.25,1) forwards; }
+    .avatar-art.is-shooting #avatar-ball-shadow { opacity: 0; }
+
+    @keyframes ball-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-9px); }
+    }
+
+    @keyframes avatar-shot {
+      0% { transform: translate(0, 0) scale(1); }
+      38% { transform: translate(-27px, -63px) scale(.86); }
+      78% { transform: translate(-14px, -106px) scale(.62); }
+      100% { transform: translate(-8px, -100px) scale(.55); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .avatar-ball { animation: none; }
+      .avatar-art #avatar-left-arm, .avatar-art #avatar-right-arm, #avatar-ball-shadow { transition: none; }
+    }
+
+    .avatar-shoot-button { width: auto; margin: 4px 0 0; padding: 9px 16px; font-size: 14px; }
+    .install-prompt { margin-top: 18px; padding: 14px 16px; border: 1px solid #303a4b; border-radius: 12px; background: #192130; }
+    .install-prompt p { margin: 0; color: #b6bfce; font-size: 13px; line-height: 1.5; }
+    .install-prompt button { margin-top: 10px; }
+    .avatar-controls { display: grid; align-content: start; gap: 14px; }
+    .avatar-controls .field { margin-top: 0; }
+    .avatar-controls fieldset { margin: 0; padding: 0; border: 0; }
+    .avatar-controls legend, .avatar-controls .control-title { margin-bottom: 8px; font-size: 14px; font-weight: bold; }
+
+    .skin-options { display: flex; flex-wrap: wrap; gap: 10px; }
+    .skin-option { position: relative; display: inline-flex; cursor: pointer; }
+    .skin-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .skin-swatch { width: 32px; height: 32px; border: 2px solid #f4f6fa; border-radius: 50%; }
+    .skin-option input:checked + .skin-swatch { outline: 3px solid #ff9f43; outline-offset: 3px; }
+    .skin-option input:focus-visible + .skin-swatch { outline: 3px solid #ff9f43; outline-offset: 3px; }
+
+    .avatar-color-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    input[type="color"] { height: 46px; padding: 4px; cursor: pointer; }
+
+    .tab-bar {
+      position: fixed;
+      z-index: 20;
+      bottom: 0;
+      left: 50%;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      width: min(100%, 680px);
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+      border: 1px solid #303a4b;
+      border-bottom: 0;
+      border-radius: 16px 16px 0 0;
+      background: rgba(25, 33, 48, 0.97);
+      transform: translateX(-50%);
+      backdrop-filter: blur(12px);
+    }
+
+    .tab-button {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      margin: 0;
+      padding: 7px 3px;
+      border-radius: 10px;
+      background: transparent;
+      color: #8994a5;
+      font-size: 11px;
+      font-weight: normal;
+    }
+
+    .tab-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .tab-button[aria-current="page"] { background: #232e40; color: #ff9f43; font-weight: bold; }
+    [data-app-tab][hidden] { display: none; }
+
+    .stat-grid, .evolution-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .stat-grid { margin-top: 18px; }
+    .stat-grid .field { margin-top: 0; }
+    .metric-card {
+      padding: 16px;
+      border: 1px solid #303a4b;
+      border-radius: 12px;
+      background: #192130;
+    }
+
+    .metric-card strong { display: block; color: #ff9f43; font-size: 25px; }
+    .metric-card span { color: #b6bfce; font-size: 13px; }
+    .bar-chart { display: flex; align-items: end; gap: 12px; padding: 18px 10px 0; }
+    .bar-chart.has-bars { min-height: 170px; }
+    .bar-chart:not(.has-bars) { padding: 0; }
+    .bar-chart-column { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 145px; }
+    .bar-chart-value { display: block; width: min(100%, 44px); min-height: 4px; border-radius: 7px 7px 0 0; background: #ff9f43; }
+    .bar-chart-label { color: #b6bfce; font-size: 11px; }
+    .goal-list { display: grid; gap: 12px; margin: 18px 0 0; padding: 0; list-style: none; }
+    .goal-card { padding: 16px; border: 1px solid #303a4b; border-radius: 12px; background: #192130; }
+    .goal-card h3 { margin: 0 0 8px; font-size: 16px; }
+    .goal-card p { margin: 6px 0; color: #b6bfce; font-size: 13px; }
+    .goal-progress { width: 100%; height: 10px; accent-color: #ff9f43; }
+    .game-history { display: grid; gap: 12px; margin-top: 18px; }
+    .game-card { padding: 16px; border: 1px solid #303a4b; border-radius: 12px; background: #192130; }
+    .game-card h3 { margin: 0 0 6px; }
+    .game-card p { margin: 6px 0 0; color: #b6bfce; line-height: 1.5; }
+    .championship-manager { margin: 22px 0; }
+    .championship-manager summary { color: #ff9f43; cursor: pointer; font-weight: bold; }
+    .championship-list { display: grid; gap: 10px; margin-top: 14px; }
+    .championship-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid #303a4b;
+      border-radius: 10px;
+      background: #10151f;
+    }
+
+    .championship-card p { margin: 4px 0 0; color: #b6bfce; font-size: 13px; }
+    .championship-card button { width: auto; flex: 0 0 auto; margin: 0; padding: 9px 12px; font-size: 13px; }
+    .championship-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .championship-actions button { margin-top: 12px; }
+    .community-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .community-actions button { flex: 1 1 150px; margin-top: 12px; }
+    .community-list { display: grid; gap: 10px; margin-top: 14px; padding: 0; list-style: none; }
+    .community-card { padding: 14px; border: 1px solid #303a4b; border-radius: 12px; background: #192130; }
+    .community-card h3 { margin: 0; font-size: 16px; }
+    .community-card p { margin: 6px 0 0; color: #b6bfce; font-size: 13px; line-height: 1.5; }
+    .community-status { min-height: 22px; color: #b6bfce; }
+    .community-team-controls { display: flex; align-items: end; gap: 10px; }
+    .community-team-controls .field { flex: 1; }
+    .community-team-controls button { flex: 0 0 auto; width: auto; margin: 0 0 0; }
+    .community-share-toggle { display: flex; align-items: center; gap: 10px; }
+    .community-share-toggle input { width: auto; margin: 0; padding: 0; accent-color: #ff9f43; }
+    .community-share-toggle span { margin: 0; }
+    .privacy-note p { margin: 8px 0 0; }
+
+    section { margin-top: 42px; }
+
+    .training-list {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .training-entry {
+      padding: 16px;
+      border: 1px solid #303a4b;
+      border-radius: 12px;
+      background: #192130;
+    }
+
+    .training-entry h3 { margin: 0 0 6px; font-size: 16px; }
+    .training-entry p { margin: 6px 0 0; color: #b6bfce; line-height: 1.5; }
+
+    .plan-summary { margin-top: 20px; }
+    .plan-cards { display: grid; gap: 12px; margin: 14px 0 0; padding: 0; list-style: none; }
+    .plan-card {
+      padding: 16px;
+      border: 1px solid #303a4b;
+      border-radius: 12px;
+      background: #192130;
+    }
+
+    .plan-card h3 { margin: 0; font-size: 16px; }
+    .plan-card p { margin: 8px 0 0; color: #b6bfce; line-height: 1.5; }
+    .safety-note { margin-top: 16px; }
+
+    .workout-screen { min-height: 100vh; padding: 24px 0 48px; }
+    .workout-topline { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .workout-counter { color: #ff9f43; font-size: 14px; font-weight: bold; }
+    .workout-progress { height: 8px; margin: 16px 0 24px; overflow: hidden; border-radius: 99px; background: #303a4b; }
+    .workout-progress > span { display: block; height: 100%; border-radius: inherit; background: #ff9f43; transition: width 180ms ease; }
+    .workout-card { min-height: 260px; padding: 24px; border: 1px solid #303a4b; border-radius: 16px; background: #192130; }
+    .workout-card h2 { margin-top: 0; font-size: clamp(24px, 6vw, 34px); }
+    .workout-card p { color: #b6bfce; font-size: 17px; line-height: 1.6; }
+    .workout-buttons { display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; margin-top: 18px; }
+    .workout-buttons button { margin-top: 0; }
+    .workout-exit { margin-top: 14px; }
+    .workout-completion { padding: 28px 22px; border: 1px solid #303a4b; border-radius: 16px; background: #192130; text-align: center; }
+    .workout-completion h2 { margin-top: 0; color: #ff9f43; }
+
+    .chat-log {
+      display: grid;
+      gap: 12px;
+      max-height: 420px;
+      overflow-y: auto;
+      margin-top: 20px;
+      padding: 14px;
+      border: 1px solid #303a4b;
+      border-radius: 12px;
+      background: #10151f;
+    }
+
+    .chat-message {
+      padding: 14px;
+      border: 1px solid #303a4b;
+      border-radius: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-message.user { margin-left: 10%; background: #232e40; }
+    .chat-message.assistant { margin-right: 10%; background: #192130; }
+    .chat-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .chat-actions button { margin-top: 18px; }
+
+    button.secondary {
+      border: 1px solid #3b4658;
+      background: #192130;
+      color: #f4f6fa;
+    }
+
+    button:disabled { cursor: wait; opacity: 0.65; }
+
+    .privacy-note {
+      padding: 12px;
+      border-left: 3px solid #ff9f43;
+      background: #192130;
+      color: #b6bfce;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .backup-tools { margin-top: 32px; }
+    .backup-tools summary { color: #ff9f43; cursor: pointer; font-weight: bold; }
+    .backup-tools button { margin-top: 12px; }
+
+    body.workout-mode main > :not(#workout-screen) { display: none; }
+    body.workout-mode .tab-bar { display: none; }
+    #workout-screen[hidden], #workout-completion[hidden], #workout-current-step[hidden] { display: none; }
+
+    input[type="range"] {
+      padding: 0;
+      accent-color: #ff9f43;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: 0;
+      border-radius: 9px;
+      background: #ff9f43;
+      color: #17120d;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #status { min-height: 22px; margin-bottom: 0; }
+    .help, footer { font-size: 13px; }
+    footer { margin-top: 18px; color: #8994a5; }
+
+    @media (max-width: 480px) {
+      body { padding: 20px 14px 112px; }
+      form { padding: 18px; }
+      .two-columns { grid-template-columns: 1fr; gap: 0; }
+      .chat-actions { grid-template-columns: 1fr; gap: 0; }
+      .chat-message.user, .chat-message.assistant { margin-left: 0; margin-right: 0; }
+      .avatar-builder { grid-template-columns: 1fr; }
+      .avatar-card { min-height: 230px; }
+      .workout-buttons { grid-template-columns: 1fr; }
+      .workout-topline { align-items: flex-start; flex-direction: column; }
+      .stat-grid, .evolution-grid { grid-template-columns: 1fr 1fr; }
+      .tab-button { font-size: 10px; }
+      .tab-button { padding: 7px 1px; }
+      .community-team-controls { align-items: stretch; flex-direction: column; }
+      .community-team-controls button { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="brand" data-app-tab="profile">QUADRA</div>
+    <p class="eyebrow" data-app-tab="profile">SEU PERFIL</p>
+    <h1 data-app-tab="profile">Monte seu jogador.</h1>
+    <p class="intro" data-app-tab="profile">Crie um personagem com a sua cara e acompanhe sua evolução na quadra.</p>
+
+    <form id="profile-form" data-app-tab="profile">
+      <div class="avatar-builder">
+        <div class="avatar-card">
+          <svg class="avatar-art" viewBox="0 0 180 230" role="img" aria-label="Prévia do avatar do jogador">
+            <ellipse cx="90" cy="214" rx="57" ry="9" fill="#10151f" opacity=".8"></ellipse>
+            <path id="avatar-left-arm" d="M56 78Q62 67 75 63L83 67L81 75L72 84L68 98L53 136Q50 141 45 138Q41 136 44 130Z" fill="#c98f67" stroke="#10151f" stroke-width="2" stroke-linejoin="round"></path>
+            <path id="avatar-right-arm" d="M124 78Q118 67 105 63L97 67L99 75L108 84L112 98L127 136Q130 141 135 138Q139 136 136 130Z" fill="#c98f67" stroke="#10151f" stroke-width="2" stroke-linejoin="round"></path>
+            <path id="avatar-legs" d="M68 158H87L77 200H62ZM93 158H112L118 200H103Z" fill="#c98f67"></path>
+            <path id="avatar-shorts" d="M67 139H113L117 159L96 157L90 164L84 157L63 159Z" fill="#26354a" stroke="#10151f" stroke-width="3" stroke-linejoin="round"></path>
+            <path id="avatar-jersey" d="M70 60H82L90 72L98 60H110L116 70L109 88L104 84V139H76V84L71 88L64 70Z" fill="#ff9f43" stroke="#10151f" stroke-width="3" stroke-linejoin="round"></path>
+            <path id="avatar-shoes" d="M62 197h15l6 8H60q-5 0-4-4zM103 197h15l5 4q1 4-4 4h-17z" fill="#f4f6fa" stroke="#10151f" stroke-width="2" stroke-linejoin="round"></path>
+            <path d="m81 60 9 13 9-13" fill="none" stroke="#f4f6fa" stroke-width="4"></path>
+            <text id="avatar-number" x="90" y="119" text-anchor="middle" fill="#10151f" font-size="25" font-weight="bold">23</text>
+            <rect id="avatar-neck" x="80" y="44" width="20" height="23" rx="8" fill="#c98f67"></rect>
+            <circle id="avatar-face" cx="90" cy="32" r="24" fill="#c98f67"></circle>
+            <path id="avatar-hair" d="M66 30q2-25 24-25 23 0 24 24l-7-7-5-7-9 7-14-2-7 9z" fill="#201a19"></path>
+            <circle cx="82" cy="34" r="2" fill="#201a19"></circle>
+            <circle cx="98" cy="34" r="2" fill="#201a19"></circle>
+            <path d="M84 44q6 4 12 0" fill="none" stroke="#201a19" stroke-width="2" stroke-linecap="round"></path>
+            <g class="avatar-hoop" aria-hidden="true">
+              <rect x="157" y="42" width="13" height="27" rx="2" fill="#f4f6fa" stroke="#10151f" stroke-width="2"></rect>
+              <rect x="160" y="46" width="7" height="11" fill="none" stroke="#ff9f43" stroke-width="1.5"></rect>
+              <path d="M128 73q15 8 30 0M132 75l4 14m6-13v15m6-16-3 14m-9 0h13" fill="none" stroke="#f4f6fa" stroke-width="1.5" stroke-linecap="round"></path>
+              <path d="M129 73q14 6 28 0" fill="none" stroke="#ff9f43" stroke-width="3" stroke-linecap="round"></path>
+            </g>
+            <ellipse id="avatar-ball-shadow" cx="151" cy="198" rx="13" ry="3" fill="#10151f" opacity=".55"></ellipse>
+            <g class="avatar-ball">
+              <circle id="avatar-ball-body" cx="151" cy="173" r="19" fill="#ff9f43" stroke="#10151f" stroke-width="3"></circle>
+              <path d="M151 154v38m-19-19h38m-29-13q16 13 20 26m-20 0q16-13 20-26" fill="none" stroke="#10151f" stroke-width="2"></path>
+            </g>
+          </svg>
+          <button id="avatar-shoot-button" class="secondary avatar-shoot-button" type="button">Arremessar</button>
+          <p id="avatar-shoot-status" class="help" role="status" aria-live="polite">Toque para ver o arremesso.</p>
+          <p id="avatar-preview-name" class="avatar-name">Seu jogador</p>
+          <p id="avatar-preview-position" class="avatar-position">Armador</p>
+        </div>
+
+        <div class="avatar-controls">
+          <label class="field">
+            <span>Nome do personagem</span>
+            <input name="name" maxlength="40" required placeholder="Seu nome ou apelido">
+          </label>
+
+          <fieldset>
+            <legend>Tom de pele</legend>
+            <div class="skin-options">
+              <label class="skin-option" title="Pele clara">
+                <input type="radio" name="skinTone" value="#f0c7a4" aria-label="Pele clara">
+                <span class="skin-swatch" style="background:#f0c7a4"></span>
+              </label>
+              <label class="skin-option" title="Pele média clara">
+                <input type="radio" name="skinTone" value="#d9a47e" aria-label="Pele média clara">
+                <span class="skin-swatch" style="background:#d9a47e"></span>
+              </label>
+              <label class="skin-option" title="Pele média" >
+                <input type="radio" name="skinTone" value="#c98f67" aria-label="Pele média" checked>
+                <span class="skin-swatch" style="background:#c98f67"></span>
+              </label>
+              <label class="skin-option" title="Pele escura">
+                <input type="radio" name="skinTone" value="#8d5b3e" aria-label="Pele escura">
+                <span class="skin-swatch" style="background:#8d5b3e"></span>
+              </label>
+              <label class="skin-option" title="Pele retinta">
+                <input type="radio" name="skinTone" value="#593a2d" aria-label="Pele retinta">
+                <span class="skin-swatch" style="background:#593a2d"></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span>Cabelo</span>
+            <select name="hairStyle">
+              <option value="short">Curto</option>
+              <option value="curly">Cacheado</option>
+              <option value="afro">Crespo</option>
+            </select>
+          </label>
+
+          <div class="avatar-color-fields">
+            <label class="field">
+              <span>Cor da camisa</span>
+              <input id="jersey-color" name="jerseyColor" type="color" value="#ff9f43">
+            </label>
+            <label class="field">
+              <span>Cor do shorts</span>
+              <input id="shorts-color" name="shortsColor" type="color" value="#26354a">
+            </label>
+            <label class="field">
+              <span>Cor do tênis</span>
+              <input id="sneaker-color" name="sneakerColor" type="color" value="#f4f6fa">
+            </label>
+            <label class="field">
+              <span>Cor da bola</span>
+              <input id="ball-color" name="ballColor" type="color" value="#ff9f43">
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Número da camisa</span>
+            <input id="jersey-number" name="jerseyNumber" type="number" min="0" max="99" value="23">
+          </label>
+        </div>
+      </div>
+
+      <details class="backup-tools">
+        <summary>Editar dados e habilidades do jogador</summary>
+      <div class="two-columns">
+        <label class="field">
+          <span>Posição</span>
+          <select name="position">
+            <option>Armador</option>
+            <option>Ala-armador</option>
+            <option>Ala</option>
+            <option>Ala-pivô</option>
+            <option>Pivô</option>
+            <option>Ainda estou descobrindo</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Altura (cm)</span>
+          <input name="height" type="number" min="100" max="250" placeholder="Ex.: 180">
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Mão dominante</span>
+        <select name="hand">
+          <option value="Direita">Direita</option>
+          <option value="Esquerda">Esquerda</option>
+          <option value="As duas">As duas</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>O que você mais quer melhorar?</span>
+        <textarea name="goal" maxlength="200" placeholder="Ex.: arremesso de longa distância"></textarea>
+      </label>
+
+      <h2>Como você avalia seu jogo?</h2>
+      <p class="help">Notas de 1 a 10, de acordo com sua percepção atual.</p>
+
+      <div class="skill">
+        <label for="shooting">Arremesso <output id="shooting-value">5</output></label>
+        <input id="shooting" name="shooting" type="range" min="1" max="10" value="5">
+      </div>
+
+      <div class="skill">
+        <label for="dribbling">Drible <output id="dribbling-value">5</output></label>
+        <input id="dribbling" name="dribbling" type="range" min="1" max="10" value="5">
+      </div>
+
+      <div class="skill">
+        <label for="finishing">Finalização <output id="finishing-value">5</output></label>
+        <input id="finishing" name="finishing" type="range" min="1" max="10" value="5">
+      </div>
+
+      <div class="skill">
+        <label for="defense">Defesa <output id="defense-value">5</output></label>
+        <input id="defense" name="defense" type="range" min="1" max="10" value="5">
+      </div>
+
+      <div class="skill">
+        <label for="conditioning">Condicionamento físico <output id="conditioning-value">5</output></label>
+        <input id="conditioning" name="conditioning" type="range" min="1" max="10" value="5">
+      </div>
+
+      </details>
+
+      <button type="submit">Salvar personagem</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="install-prompt" data-app-tab="profile">
+      <p>Instale o Quadra pelo menu do navegador quando ele estiver aberto em um endereço seguro (HTTPS).</p>
+      <button id="install-app-button" class="secondary" type="button" hidden>Instalar Quadra</button>
+      <p id="install-status" role="status" aria-live="polite"></p>
+    </div>
+
+    <section id="games-tab" data-app-tab="games" hidden aria-labelledby="games-heading">
+      <p class="eyebrow">SUAS PARTIDAS</p>
+      <h1 id="games-heading">Estatísticas de jogo.</h1>
+      <p class="intro">Registre seu desempenho e o contexto de cada partida. As porcentagens de arremesso são calculadas pelo app.</p>
+
+      <details id="championship-manager" class="championship-manager">
+        <summary>Gerenciar campeonatos</summary>
+        <p class="help">Cadastre cada campeonato e o time uma vez. Depois, selecione o campeonato ao adicionar uma partida.</p>
+        <form id="championship-form">
+          <input name="id" type="hidden">
+          <div class="two-columns">
+            <label class="field">
+              <span>Nome do campeonato</span>
+              <input name="name" maxlength="80" required placeholder="Ex.: Liga Metropolitana">
+            </label>
+            <label class="field">
+              <span>Seu time nesse campeonato</span>
+              <input name="team" maxlength="60" required placeholder="Ex.: Lobos da Quadra">
+            </label>
+          </div>
+          <div class="championship-actions">
+            <button id="championship-submit" type="submit">Cadastrar campeonato</button>
+            <button id="championship-cancel" class="secondary" type="button" hidden>Cancelar edição</button>
+          </div>
+          <p id="championship-status" role="status" aria-live="polite"></p>
+        </form>
+        <div id="championship-list" class="championship-list"></div>
+      </details>
+
+      <form id="game-form">
+        <div class="two-columns">
+          <label class="field">
+            <span>Data da partida</span>
+            <input name="date" type="date" required>
+          </label>
+          <label class="field">
+            <span>Campeonato</span>
+            <select name="competitionId" required>
+              <option value="" selected disabled>Cadastre ou selecione</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="game-team-preview" class="help">Seu time será preenchido a partir do campeonato escolhido.</p>
+
+        <div class="two-columns">
+          <label class="field">
+            <span>Time adversário</span>
+            <input name="opponent" maxlength="60" required placeholder="Ex.: Falcões">
+          </label>
+        </div>
+
+        <h2>Estatísticas individuais</h2>
+        <div class="stat-grid">
+          <label class="field"><span>Minutos jogados</span><input name="minutes" type="number" min="0" max="60" value="0" required></label>
+          <label class="field"><span>Pontos</span><input name="points" type="number" min="0" max="200" value="0" required></label>
+          <label class="field"><span>Rebotes</span><input name="rebounds" type="number" min="0" max="100" value="0" required></label>
+          <label class="field"><span>Assistências</span><input name="assists" type="number" min="0" max="100" value="0" required></label>
+          <label class="field"><span>Roubos de bola</span><input name="steals" type="number" min="0" max="50" value="0" required></label>
+          <label class="field"><span>Tocos</span><input name="blocks" type="number" min="0" max="50" value="0" required></label>
+          <label class="field"><span>Turnovers</span><input name="turnovers" type="number" min="0" max="50" value="0" required></label>
+        </div>
+
+        <h2>Arremessos</h2>
+        <p class="help">Informe convertidos e tentados. Se não tiver o dado, deixe zero.</p>
+        <div class="stat-grid">
+          <label class="field"><span>Arremessos convertidos</span><input name="fgMade" type="number" min="0" max="100" value="0" required></label>
+          <label class="field"><span>Arremessos tentados</span><input name="fgAttempted" type="number" min="0" max="150" value="0" required></label>
+          <label class="field"><span>Bolas de 3 convertidas</span><input name="threeMade" type="number" min="0" max="50" value="0" required></label>
+          <label class="field"><span>Bolas de 3 tentadas</span><input name="threeAttempted" type="number" min="0" max="80" value="0" required></label>
+          <label class="field"><span>Lances livres convertidos</span><input name="ftMade" type="number" min="0" max="50" value="0" required></label>
+          <label class="field"><span>Lances livres tentados</span><input name="ftAttempted" type="number" min="0" max="80" value="0" required></label>
+        </div>
+
+        <div class="two-columns">
+          <label class="field"><span>Pontos do seu time (opcional)</span><input name="teamScore" type="number" min="0" max="250"></label>
+          <label class="field"><span>Pontos do adversário (opcional)</span><input name="opponentScore" type="number" min="0" max="250"></label>
+        </div>
+
+        <button type="submit">Salvar partida</button>
+        <p id="game-status" role="status" aria-live="polite"></p>
+      </form>
+
+      <h2>Partidas registradas</h2>
+      <div id="game-history" class="game-history" aria-label="Histórico de partidas"></div>
+    </section>
+
+    <section id="community-tab" data-app-tab="community" hidden aria-labelledby="community-heading">
+      <p class="eyebrow">SEU TIME</p>
+      <h1 id="community-heading">Comunidade.</h1>
+      <p class="intro">Crie um time como treinador ou entre pelo convite. Compartilhar estatísticas é opcional e começa desativado.</p>
+
+      <div id="community-unconfigured" class="privacy-note" hidden>
+        <strong>Comunidade online ainda não configurada.</strong>
+        <p>Crie um projeto Supabase, aplique <code>supabase/schema.sql</code> e configure a URL e a chave pública em <code>supabase-config.js</code>.</p>
+      </div>
+
+      <div id="community-auth-panel" hidden>
+        <form id="community-signin-form">
+          <h2>Entrar</h2>
+          <label class="field">
+            <span>E-mail</span>
+            <input name="email" type="email" autocomplete="email" required>
+          </label>
+          <label class="field">
+            <span>Senha</span>
+            <input name="password" type="password" autocomplete="current-password" minlength="8" required>
+          </label>
+          <button type="submit">Entrar na comunidade</button>
+        </form>
+
+        <details class="backup-tools">
+          <summary>Criar conta de jogador ou treinador</summary>
+          <form id="community-signup-form">
+            <label class="field">
+              <span>Como podemos te chamar?</span>
+              <input name="displayName" maxlength="60" required>
+            </label>
+            <label class="field">
+              <span>E-mail</span>
+              <input name="email" type="email" autocomplete="email" required>
+            </label>
+            <label class="field">
+              <span>Senha (mínimo 8 caracteres)</span>
+              <input name="password" type="password" autocomplete="new-password" minlength="8" required>
+            </label>
+            <button type="submit">Criar conta</button>
+          </form>
+        </details>
+      </div>
+
+      <p id="community-status" class="community-status" role="status" aria-live="polite"></p>
+
+      <div id="community-dashboard" hidden>
+        <p id="community-user-label" class="help"></p>
+        <button id="community-signout" class="secondary" type="button">Sair da conta</button>
+
+        <form id="community-team-form">
+          <h2>Criar um time</h2>
+          <p class="help">Quem cria o time recebe o papel de treinador. Os jogadores entram pelo link de convite.</p>
+          <label class="field">
+            <span>Nome do time</span>
+            <input name="name" maxlength="80" required placeholder="Ex.: Lobos da Quadra">
+          </label>
+          <button type="submit">Criar time</button>
+        </form>
+
+        <div class="community-team-controls">
+          <label class="field">
+            <span>Meus times</span>
+            <select id="community-team-select">
+              <option value="">Nenhum time encontrado</option>
+            </select>
+          </label>
+          <button id="community-refresh" class="secondary" type="button">Atualizar</button>
+        </div>
+        <section id="community-team-view" hidden aria-labelledby="community-team-heading">
+          <h2 id="community-team-heading"></h2>
+          <p id="community-team-role" class="help"></p>
+
+          <div id="community-coach-tools" hidden>
+            <div class="community-actions">
+              <button id="community-create-invite" type="button">Criar link de convite</button>
+            </div>
+            <div id="community-invite-output" hidden>
+              <label class="field">
+                <span>Convite válido por 14 dias</span>
+                <input id="community-invite-link" type="url" readonly>
+              </label>
+              <div class="community-actions">
+                <button id="community-copy-invite" class="secondary" type="button">Copiar link</button>
+                <button id="community-revoke-invite" class="secondary" type="button">Revogar link</button>
+              </div>
+            </div>
+          </div>
+
+          <form id="community-share-form">
+            <h3>Compartilhamento de estatísticas</h3>
+            <p class="help">Se ativado, o treinador poderá ver apenas seus totais e médias de partidas deste navegador — sem observações pessoais. Você pode desligar quando quiser.</p>
+            <label class="field community-share-toggle">
+              <input id="community-share-stats" name="shareStats" type="checkbox">
+              <span>Compartilhar minhas estatísticas agregadas com este time</span>
+            </label>
+            <button type="submit">Salvar preferência</button>
+          </form>
+
+          <h3>Elenco</h3>
+          <ul id="community-members" class="community-list"></ul>
+          <h3>Estatísticas compartilhadas</h3>
+          <div id="community-shared-stats" class="community-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="evolution-tab" data-app-tab="evolution" hidden aria-labelledby="evolution-heading">
+      <p class="eyebrow">SEU PROGRESSO</p>
+      <h1 id="evolution-heading">Evolução e metas.</h1>
+      <p class="intro">Acompanhe seus números de quadra e o progresso das metas de treino.</p>
+
+      <div class="evolution-grid" aria-label="Resumo de desempenho">
+        <div class="metric-card"><strong id="metric-games">0</strong><span>Partidas</span></div>
+        <div class="metric-card"><strong id="metric-points-per-game">0</strong><span>Pontos por partida</span></div>
+        <div class="metric-card"><strong id="metric-rebounds-per-game">0</strong><span>Rebotes por partida</span></div>
+        <div class="metric-card"><strong id="metric-assists-per-game">0</strong><span>Assistências por partida</span></div>
+        <div class="metric-card"><strong id="metric-fg-percent">—</strong><span>Aproveitamento nos arremessos</span></div>
+        <div class="metric-card"><strong id="metric-three-percent">—</strong><span>Aproveitamento nas bolas de 3</span></div>
+        <div class="metric-card"><strong id="metric-training-count">0</strong><span>Treinos registrados</span></div>
+        <div class="metric-card"><strong id="metric-training-minutes">0</strong><span>Minutos de treino registrados</span></div>
+      </div>
+
+      <h2>Pontos nas últimas partidas</h2>
+      <div id="points-chart" class="bar-chart" aria-label="Gráfico de pontos recentes"></div>
+
+      <h2>Metas de treino</h2>
+      <p class="help">Defina quantos treinos quer registrar por fundamento. O progresso é contado pelo histórico deste app.</p>
+      <form id="goal-form">
+        <label class="field">
+          <span>Nome da meta</span>
+          <input name="title" maxlength="60" required placeholder="Ex.: Treinar drible com frequência">
+        </label>
+        <div class="two-columns">
+          <label class="field">
+            <span>Fundamento</span>
+            <select name="focus" required>
+              <option value="Qualquer treino">Qualquer treino</option>
+              <option value="Arremesso">Arremesso</option>
+              <option value="Drible">Drible</option>
+              <option value="Finalização">Finalização</option>
+              <option value="Defesa">Defesa</option>
+              <option value="Condicionamento físico">Condicionamento físico</option>
+              <option value="Treino completo">Treino completo</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Quantidade de treinos</span>
+            <input name="target" type="number" min="1" max="100" value="5" required>
+          </label>
+        </div>
+        <button type="submit">Adicionar meta</button>
+        <p id="goal-status" role="status" aria-live="polite"></p>
+      </form>
+      <div id="goal-list"></div>
+    </section>
+
+    <section id="workout-screen" class="workout-screen" hidden aria-labelledby="guided-workout-title">
+      <div class="workout-topline">
+        <div class="brand">QUADRA</div>
+        <p id="workout-counter" class="workout-counter"></p>
+      </div>
+      <p class="eyebrow">TREINO GUIADO</p>
+      <h1 id="guided-workout-title"></h1>
+      <p id="workout-subtitle" class="intro"></p>
+      <div class="workout-progress" role="progressbar" aria-label="Progresso do treino" aria-valuemin="0" aria-valuemax="100">
+        <span id="workout-progress-bar"></span>
+      </div>
+      <div id="workout-current-step" class="workout-card">
+        <h2 id="workout-step-title"></h2>
+        <p id="workout-step-duration" class="workout-counter"></p>
+        <p id="workout-step-instructions"></p>
+        <div class="workout-buttons">
+          <button id="workout-previous" class="secondary" type="button">Etapa anterior</button>
+          <button id="workout-next" type="button">Terminar etapa</button>
+        </div>
+        <button id="workout-exit" class="secondary workout-exit" type="button">Sair do treino sem registrar</button>
+        <p id="workout-step-status" role="status" aria-live="polite"></p>
+      </div>
+      <div id="workout-completion" class="workout-completion" hidden>
+        <h2>Treino concluído!</h2>
+        <p id="workout-completion-message"></p>
+        <button id="workout-retry-save" class="secondary" type="button" hidden>Tentar salvar no histórico</button>
+        <button id="workout-return" type="button">Voltar ao app</button>
+      </div>
+    </section>
+
+    <section data-app-tab="training" hidden aria-labelledby="offline-plan-heading">
+      <p class="eyebrow">SEUS TREINOS</p>
+      <h1 id="offline-plan-heading">Monte um treino para hoje.</h1>
+      <p class="intro">Escolha um foco e quanto tempo tem. O plano é montado por uma biblioteca salva no app e funciona sem internet.</p>
+
+      <form id="offline-plan-form">
+        <div class="two-columns">
+          <label class="field">
+            <span>O que quer treinar?</span>
+            <select name="focus" required>
+              <option value="Drible">Drible</option>
+              <option value="Arremesso">Arremesso</option>
+              <option value="Finalização">Finalização</option>
+              <option value="Defesa">Defesa</option>
+              <option value="Condicionamento físico">Condicionamento físico</option>
+              <option value="Treino completo">Treino completo</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Tempo disponível (minutos)</span>
+            <input name="duration" type="number" min="10" max="120" value="30" required>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Nível atual</span>
+          <select name="level" required>
+            <option value="Iniciante">Iniciante</option>
+            <option value="Intermediário">Intermediário</option>
+            <option value="Avançado">Avançado</option>
+          </select>
+        </label>
+        <p class="help">O nível muda a complexidade dos exercícios, não é uma avaliação do jogador. Escolha um nível em que consiga manter a técnica e o controle.</p>
+
+        <button type="submit">Começar treino guiado</button>
+        <p id="offline-plan-status" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="privacy-note safety-note">Sugestões gerais, sem avaliação individual. Faça os movimentos em um espaço livre, ajuste o ritmo ao seu nível e pare se sentir dor, tontura ou mal-estar. Nos planos completos, aquecimento, fundamentos e volta à calma aparecem em blocos separados.</p>
+    </section>
+
+    <details data-app-tab="training" hidden class="backup-tools">
+      <summary>Assistente com IA online (pausado)</summary>
+      <section aria-labelledby="coach-heading">
+        <h2 id="coach-heading">Converse com seu treinador.</h2>
+        <p class="intro">Quando houver uma conexão que alcance o Gemini, podemos retomar esse assistente.</p>
+        <p class="privacy-note">Se reativado, as mensagens serão enviadas ao Google Gemini. Não inclua dados pessoais ou informações de saúde sensíveis. A conversa fica salva apenas neste navegador.</p>
+
+        <div id="coach-chat" class="chat-log" role="log" aria-label="Conversa com o assistente de treino" aria-live="polite"></div>
+
+        <form id="coach-form">
+          <label class="field">
+            <span>Sua mensagem</span>
+            <textarea id="coach-message" name="message" maxlength="4000" required placeholder="Ex.: Quero treinar arremesso por 45 minutos."></textarea>
+          </label>
+
+          <div class="chat-actions">
+            <button id="send-coach-message" type="submit">Enviar mensagem</button>
+            <button id="new-coach-chat" class="secondary" type="button">Começar nova conversa</button>
+          </div>
+          <p id="coach-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </details>
+
+    <section data-app-tab="training" hidden aria-labelledby="training-heading">
+      <h2 id="training-heading">Registrar treino manualmente</h2>
+      <p class="intro">Anote o foco e a duração para acompanhar sua rotina.</p>
+
+      <form id="training-form">
+        <label class="field">
+          <span>Data do treino</span>
+          <input name="date" type="date" required>
+        </label>
+
+        <div class="two-columns">
+          <label class="field">
+            <span>Foco</span>
+            <select name="focus" required>
+              <option value="Arremesso">Arremesso</option>
+              <option value="Drible">Drible</option>
+              <option value="Finalização">Finalização</option>
+              <option value="Defesa">Defesa</option>
+              <option value="Condicionamento físico">Condicionamento físico</option>
+              <option value="Treino completo">Treino completo</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Duração (minutos)</span>
+            <input name="duration" type="number" min="1" max="600" required placeholder="Ex.: 60">
+          </label>
+        </div>
+
+        <label class="field">
+          <span>O que você praticou? (opcional)</span>
+          <textarea name="notes" maxlength="300" placeholder="Ex.: exercícios, séries ou observações do treino."></textarea>
+        </label>
+
+        <button type="submit">Salvar treino</button>
+        <p id="training-status" role="status" aria-live="polite"></p>
+      </form>
+
+      <h2>Histórico de treinos</h2>
+      <div id="training-history" aria-label="Histórico de treinos"></div>
+    </section>
+
+    <details data-app-tab="profile" hidden class="backup-tools">
+      <summary>Backup e transferência dos dados</summary>
+      <p class="help">Use o backup para levar seu perfil, campeonatos, partidas, treinos e metas para outro navegador.</p>
+      <button id="export-data" class="secondary" type="button">Baixar backup</button>
+      <label class="field">
+        <span>Importar um backup</span>
+        <input id="import-data" type="file" accept=".json,application/json">
+      </label>
+      <p id="backup-status" role="status" aria-live="polite"></p>
+    </details>
+
+    <footer data-app-tab="profile" hidden>Por enquanto, seus dados ficam salvos neste navegador e neste computador.</footer>
+  </main>
+
+  <nav class="tab-bar" aria-label="Navegação principal">
+    <button class="tab-button" type="button" data-tab-target="games" aria-current="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 5v4m8-4v4M8 19v-4m8 4v-4M4 12h16M12 9v6"></path></svg>
+      <span>Partidas</span>
+    </button>
+    <button class="tab-button" type="button" data-tab-target="training" aria-current="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18M3 12h18M5.5 5.5l13 13m0-13-13 13"></path></svg>
+      <span>Treinos</span>
+    </button>
+    <button class="tab-button" type="button" data-tab-target="community" aria-current="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"></path><circle cx="9" cy="7" r="4"></circle><path d="M20 20v-1.5a4 4 0 0 0-3-3.87M16 3.2a4 4 0 0 1 0 7.6"></path></svg>
+      <span>Comunidade</span>
+    </button>
+    <button class="tab-button" type="button" data-tab-target="evolution" aria-current="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5m0 14h17M7 15l4-4 3 2 6-7"></path><path d="M16 6h4v4"></path></svg>
+      <span>Evolução</span>
+    </button>
+    <button class="tab-button" type="button" data-tab-target="profile" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+      <span>Perfil</span>
+    </button>
+  </nav>
+
+  <script>
+    const form = document.querySelector("#profile-form");
+    const status = document.querySelector("#status");
+    const storageKey = "quadra-player-profile";
+    const coachStorageKey = "quadra-coach-messages";
+    const appTabPanels = document.querySelectorAll("[data-app-tab]");
+    const appTabButtons = document.querySelectorAll("[data-tab-target]");
+    const appTabs = ["games", "training", "community", "evolution", "profile"];
+    const sliders = document.querySelectorAll('input[type="range"]');
+    const avatarHairPaths = {
+      short: "M66 30q2-25 24-25 23 0 24 24l-7-7-5-7-9 7-14-2-7 9z",
+      curly: "M66 31q-3-26 24-26 26 0 24 27l-6-4-4-7-6 5-6-7-7 6-7-4-7 10z",
+      afro: "M63 34q-5-7-2-15 1-10 10-13 5-7 15-6 8-2 14 4 11 2 13 13 4 9-2 18l-5-6-4-8-6 5-6-8-7 7-7-5-5 9-5-2z"
+    };
+
+    function showAppTab(tab) {
+      if (!appTabs.includes(tab)) return;
+
+      appTabPanels.forEach((panel) => {
+        panel.hidden = panel.dataset.appTab !== tab;
+      });
+
+      appTabButtons.forEach((button) => {
+        button.setAttribute("aria-current", button.dataset.tabTarget === tab ? "page" : "false");
+      });
+
+      if (tab === "evolution") renderEvolution();
+      window.scrollTo(0, 0);
+    }
+
+    appTabButtons.forEach((button) => {
+      button.addEventListener("click", () => showAppTab(button.dataset.tabTarget));
+    });
+
+    sliders.forEach((slider) => {
+      slider.addEventListener("input", () => {
+        document.querySelector(`#${slider.id}-value`).textContent = slider.value;
+      });
+    });
+
+    function updateAvatarPreview() {
+      const playerName = form.elements.namedItem("name").value.trim();
+      const skinTone = form.elements.namedItem("skinTone").value;
+      const jerseyColor = form.elements.namedItem("jerseyColor").value;
+      const shortsColor = form.elements.namedItem("shortsColor").value;
+      const sneakerColor = form.elements.namedItem("sneakerColor").value;
+      const ballColor = form.elements.namedItem("ballColor").value;
+      const jerseyNumber = form.elements.namedItem("jerseyNumber").value;
+      const hairStyle = form.elements.namedItem("hairStyle").value;
+      const position = form.elements.namedItem("position").value;
+
+      document.querySelector("#avatar-preview-name").textContent = playerName || "Seu jogador";
+      document.querySelector("#avatar-preview-position").textContent = position;
+      document.querySelector("#avatar-face").setAttribute("fill", skinTone);
+      document.querySelector("#avatar-neck").setAttribute("fill", skinTone);
+      document.querySelector("#avatar-left-arm").setAttribute("fill", skinTone);
+      document.querySelector("#avatar-right-arm").setAttribute("fill", skinTone);
+      document.querySelector("#avatar-legs").setAttribute("fill", skinTone);
+      document.querySelector("#avatar-jersey").setAttribute("fill", jerseyColor);
+      document.querySelector("#avatar-shorts").setAttribute("fill", shortsColor);
+      document.querySelector("#avatar-shoes").setAttribute("fill", sneakerColor);
+      document.querySelector("#avatar-ball-body").setAttribute("fill", ballColor);
+      document.querySelector("#avatar-hair").setAttribute("d", avatarHairPaths[hairStyle] || avatarHairPaths.short);
+      document.querySelector("#avatar-number").textContent = jerseyNumber || "0";
+    }
+
+    form.addEventListener("input", updateAvatarPreview);
+    form.addEventListener("change", updateAvatarPreview);
+
+    const avatarArt = document.querySelector(".avatar-art");
+    const avatarShootButton = document.querySelector("#avatar-shoot-button");
+    const avatarShootStatus = document.querySelector("#avatar-shoot-status");
+
+    avatarShootButton.addEventListener("click", () => {
+      if (avatarShootButton.disabled) return;
+      avatarArt.classList.remove("is-shooting");
+      void avatarArt.offsetWidth;
+      avatarArt.classList.add("is-shooting");
+      avatarShootButton.disabled = true;
+      avatarShootStatus.textContent = "Arremesso!";
+      avatarShotTimer = setTimeout(() => {
+        avatarArt.classList.remove("is-shooting");
+        avatarShootButton.disabled = false;
+        avatarShootStatus.textContent = "Toque para ver o arremesso.";
+      }, 1700);
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const profile = Object.fromEntries(new FormData(form).entries());
+
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(profile));
+        status.textContent = "Perfil salvo neste navegador!";
+        showAppTab("training");
+      } catch (error) {
+        console.error(error);
+        status.textContent = "Não foi possível salvar. Tente abrir a página em outro navegador.";
+      }
+    });
+
+    let hasSavedProfile = false;
+    try {
+      const savedProfile = localStorage.getItem(storageKey);
+
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile);
+        if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
+          throw new TypeError("O perfil salvo não tem o formato esperado.");
+        }
+
+        for (const [name, value] of Object.entries(profile)) {
+          const field = form.elements.namedItem(name);
+          if (field) field.value = value;
+        }
+
+        hasSavedProfile = true;
+        sliders.forEach((slider) => {
+          slider.dispatchEvent(new Event("input"));
+        });
+      }
+
+      updateAvatarPreview();
+    } catch (error) {
+      console.error(error);
+      status.textContent = "Não foi possível carregar o perfil salvo.";
+    }
+    showAppTab(hasSavedProfile ? "training" : "profile");
+
+    const offlinePlanForm = document.querySelector("#offline-plan-form");
+    const offlinePlanStatus = document.querySelector("#offline-plan-status");
+    const workoutScreen = document.querySelector("#workout-screen");
+    const workoutCounter = document.querySelector("#workout-counter");
+    const workoutProgress = document.querySelector(".workout-progress");
+    const workoutProgressBar = document.querySelector("#workout-progress-bar");
+    const workoutCurrentStep = document.querySelector("#workout-current-step");
+    const workoutCompletion = document.querySelector("#workout-completion");
+    const workoutStepStatus = document.querySelector("#workout-step-status");
+    const workoutRetrySaveButton = document.querySelector("#workout-retry-save");
+    let activeWorkout = null;
+    let currentWorkoutStep = 0;
+    let workoutCompleted = false;
+    let workoutSaved = false;
+    const warmup = {
+      name: "Aquecimento",
+      instructions: "Comece com movimentos leves em um espaço livre. Prepare quadris, tornozelos e ombros sem forçar; se tiver bola, faça alguns dribles tranquilos."
+    };
+    const cooldown = {
+      name: "Volta à calma",
+      instructions: "Caminhe devagar e reduza o ritmo gradualmente. Respire com tranquilidade e não force alongamentos."
+    };
+    const offlinePlanLibrary = {
+      "Drible": {
+        "Iniciante": [
+          { name: "Controle parado", instructions: "Alterne dribles baixos e na altura da cintura, uma mão de cada vez. Faça ciclos curtos e descanse antes de trocar de mão." },
+          { name: "Troca de mãos básica", instructions: "Faça cruzamentos à frente do corpo, parado e devagar. Priorize controle e postura antes de tentar acelerar." }
+        ],
+        "Intermediário": [
+          { name: "Mudanças de altura e mão", instructions: "Alterne drible baixo, médio e troca à frente. Faça sequências curtas com cada mão e descanse entre as rodadas." },
+          { name: "Drible em deslocamento", instructions: "Avance e volte em espaço livre, mudando de mão em pontos marcados. Mantenha o controle; sem espaço, faça a sequência parado." }
+        ],
+        "Avançado": [
+          { name: "Combinação de dribles", instructions: "Combine duas mudanças de direção diferentes, sem oposição e em velocidade controlada. Repita com as duas mãos e descanse entre as séries." },
+          { name: "Drible com decisão", instructions: "Escolha um ponto ou sinal visual para decidir entre avançar, recuar ou mudar de mão. Mantenha a técnica; não use contato físico." }
+        ]
+      },
+      "Arremesso": {
+        "Iniciante": [
+          { name: "Forma perto da cesta", instructions: "Com aro, faça arremessos curtos e equilibrados, um de cada vez. Sem aro, pratique o gesto sem soltar a bola." },
+          { name: "Alvos confortáveis", instructions: "Com aro, escolha dois pontos próximos e alterne entre eles, buscando um movimento consistente. Aproxime-se se a técnica se perder." }
+        ],
+        "Intermediário": [
+          { name: "Arremessos em três pontos", instructions: "Com aro, escolha três posições confortáveis e faça séries curtas em cada uma. Recolha a bola com calma e descanse entre as séries." },
+          { name: "Recepção e arremesso", instructions: "Com parceiro, receba a bola e arremesse de uma posição confortável; sozinho, faça um passe para si mesmo. Priorize equilíbrio e boa mecânica." }
+        ],
+        "Avançado": [
+          { name: "Arremesso após deslocamento", instructions: "Parta de um ponto marcado, faça um deslocamento curto e arremesse com controle. Alterne os lados e mantenha a distância em que sua técnica permanece estável." },
+          { name: "Série por zonas com leitura", instructions: "Com aro, alterne entre zonas marcadas e varie entre receber parado e chegar em movimento. Conte acertos e tentativas; descanse e não force o volume." }
+        ]
+      },
+      "Finalização": {
+        "Iniciante": [
+          { name: "Bandeja caminhando", instructions: "Com bola e aro, aproxime-se caminhando e faça a bandeja pelo lado dominante. Sem aro, pratique os passos sem saltar." },
+          { name: "Bandeja do lado oposto", instructions: "Repita pelo outro lado em ritmo confortável. Com aro, busque finalizar com controle; sem aro, ensaie os passos e a coordenação." }
+        ],
+        "Intermediário": [
+          { name: "Bandeja em velocidade controlada", instructions: "Comece alguns passos antes do aro e finalize com bandeja pelo lado dominante. Repita do outro lado, descansando entre as séries." },
+          { name: "Bandeja com mão oposta", instructions: "Aproxime-se pelo lado oposto e tente finalizar com a mão correspondente. Comece devagar e mantenha poucas repetições por série." }
+        ],
+        "Avançado": [
+          { name: "Bandeja após mudança de direção", instructions: "Use uma marca no chão para fazer uma mudança simples de direção antes de atacar o aro. Alterne os lados e não acrescente contato." },
+          { name: "Finalização com escolha de lado", instructions: "Alterne entre bandeja do lado dominante e do outro lado conforme uma marca ou sinal combinado. Controle a aproximação e a aterrissagem." }
+        ]
+      },
+      "Defesa": {
+        "Iniciante": [
+          { name: "Postura defensiva", instructions: "Pratique uma postura equilibrada por períodos curtos, sem baixar além do confortável. Descanse e mantenha os joelhos alinhados." },
+          { name: "Passos laterais", instructions: "Dê alguns passos laterais e volte, sem cruzar os pés. Faça devagar e pare para recuperar o equilíbrio." }
+        ],
+        "Intermediário": [
+          { name: "Deslocamento lateral em séries", instructions: "Desloque-se entre duas marcas mantendo a postura e sem cruzar os pés. Faça séries curtas com pausa entre elas." },
+          { name: "Fechamento controlado", instructions: "Avance de forma controlada até uma marca e pare equilibrado, com as mãos levantadas. Não faça contato nem salte para bloquear." }
+        ],
+        "Avançado": [
+          { name: "Reação a sinais", instructions: "Peça a alguém para indicar esquerda ou direita, ou use marcas visuais, e reaja com passos laterais controlados. Combine pausas e não faça contato." },
+          { name: "Defesa com mudança de direção", instructions: "Alterne deslocamento lateral, avanço curto e recuo conforme sinais previamente definidos. Mantenha controle e interrompa se a postura se perder." }
+        ]
+      },
+      "Condicionamento físico": {
+        "Iniciante": [
+          { name: "Caminhada com mudanças de direção", instructions: "Caminhe em um espaço livre e mude de direção em ritmo confortável. Faça pausas sempre que precisar." },
+          { name: "Passos laterais leves", instructions: "Faça deslocamentos laterais curtos e lentos, com descanso entre eles. Mantenha movimentos controlados, sem saltos." }
+        ],
+        "Intermediário": [
+          { name: "Intervalos moderados", instructions: "Alterne períodos curtos de deslocamento lateral e caminhada leve para recuperar. Mantenha um ritmo que permita falar." },
+          { name: "Circuito de quadra controlado", instructions: "Alterne caminhada rápida, passos laterais e caminhada leve em blocos curtos. Descanse entre as rodadas e evite sprint máximo." }
+        ],
+        "Avançado": [
+          { name: "Intervalos com variação", instructions: "Alterne deslocamentos frontais, laterais e caminhada de recuperação em blocos definidos. Aumente a complexidade, não a velocidade a qualquer custo." },
+          { name: "Circuito com mudança de direção", instructions: "Use marcas no chão para alternar direções em ritmo moderado e pausas planejadas. Mantenha a técnica e evite esforços máximos sem orientação." }
+        ]
+      },
+      "Treino completo": {
+        "Iniciante": [
+          { name: "Controle de bola", instructions: "Alterne dribles simples entre as mãos, parado ou caminhando devagar." },
+          { name: "Bandejas", instructions: "Com aro, pratique bandejas caminhando dos dois lados. Sem aro, ensaie os passos sem saltar." },
+          { name: "Arremesso próximo", instructions: "Com aro, faça arremessos curtos e equilibrados. Sem aro, pratique o gesto sem soltar a bola." },
+          { name: "Defesa básica", instructions: "Faça passos laterais curtos, sem cruzar os pés, e descanse entre eles." }
+        ],
+        "Intermediário": [
+          { name: "Drible em deslocamento", instructions: "Alterne mudanças de mão enquanto avança e volta entre marcas, mantendo controle." },
+          { name: "Bandejas dos dois lados", instructions: "Com aro, aproxime-se em velocidade controlada e alterne os lados. Descanse entre as séries." },
+          { name: "Arremesso em posições", instructions: "Com aro, alterne entre três pontos confortáveis e faça séries curtas com pausas." },
+          { name: "Deslocamento defensivo", instructions: "Alterne passos laterais e um fechamento controlado, sem contato e sem saltar." }
+        ],
+        "Avançado": [
+          { name: "Drible com mudança de direção", instructions: "Combine mudanças de mão e direção entre marcas, alternando o lado de ataque e mantendo controle." },
+          { name: "Bandeja com escolha de lado", instructions: "Alterne bandejas dos dois lados conforme uma marca ou sinal. Sem defensor e sem contato." },
+          { name: "Arremesso após deslocamento", instructions: "Alterne recepção parada e chegada em movimento de curta distância. Conte acertos e tentativas; descanse entre séries." },
+          { name: "Defesa com reação", instructions: "Reaja a sinais para mudar de direção com passos curtos e controlados. Não faça contato e mantenha pausas planejadas." }
+        ]
+      }
+    };
+
+    function renderWorkoutStep() {
+      if (!activeWorkout) return;
+
+      const step = activeWorkout.steps[currentWorkoutStep];
+      const isLastStep = currentWorkoutStep === activeWorkout.steps.length - 1;
+      const progressPercent = Math.round(((currentWorkoutStep + 1) / activeWorkout.steps.length) * 100);
+
+      document.body.classList.add("workout-mode");
+      workoutScreen.hidden = false;
+      workoutCurrentStep.hidden = false;
+      workoutCompletion.hidden = true;
+      workoutCounter.textContent = `Etapa ${currentWorkoutStep + 1} de ${activeWorkout.steps.length}`;
+      document.querySelector("#guided-workout-title").textContent = `Treino de ${activeWorkout.focus.toLowerCase()}`;
+      document.querySelector("#workout-subtitle").textContent = `${activeWorkout.level} · ${activeWorkout.duration} minutos planejados`;
+      document.querySelector("#workout-step-title").textContent = step.name;
+      document.querySelector("#workout-step-duration").textContent = `Tempo sugerido: ${step.minutes} min`;
+      document.querySelector("#workout-step-instructions").textContent = step.instructions;
+      document.querySelector("#workout-previous").disabled = currentWorkoutStep === 0;
+      document.querySelector("#workout-next").textContent = isLastStep ? "Concluir treino e registrar" : "Terminar etapa e avançar";
+      workoutProgressBar.style.width = `${progressPercent}%`;
+      workoutProgress.setAttribute("aria-valuenow", String(progressPercent));
+      workoutStepStatus.textContent = "";
+      workoutRetrySaveButton.hidden = true;
+      window.scrollTo(0, 0);
+    }
+
+    function returnFromWorkout() {
+      document.body.classList.remove("workout-mode");
+      workoutScreen.hidden = true;
+      document.title = "Quadra — Meu jogador";
+      offlinePlanStatus.textContent = workoutSaved
+        ? "Treino concluído e registrado no histórico!"
+        : workoutCompleted
+          ? "Treino concluído, mas não foi registrado. Confira o histórico ou salve manualmente."
+          : "Você saiu do treino sem registrar.";
+      showAppTab("training");
+      activeWorkout = null;
+      currentWorkoutStep = 0;
+      workoutCompleted = false;
+      workoutSaved = false;
+      document.querySelector("#offline-plan-form button[type='submit']").focus();
+    }
+
+    function saveCompletedWorkout() {
+      if (!activeWorkout) return false;
+
+      try {
+        if (!trainingStorageReady) {
+          throw new Error("O histórico não está disponível. O treino não foi registrado.");
+        }
+
+        const entry = {
+          date: getLocalDate(),
+          focus: activeWorkout.focus,
+          duration: activeWorkout.duration,
+          notes: `Plano guiado · Nível ${activeWorkout.level}`
+        };
+        const updatedEntries = [entry, ...trainingEntries];
+        localStorage.setItem(trainingStorageKey, JSON.stringify(updatedEntries));
+        trainingEntries = updatedEntries;
+        renderTrainingHistory(trainingEntries);
+        renderEvolution();
+        trainingStatus.textContent = "Treino concluído e registrado no histórico!";
+        workoutSaved = true;
+        workoutRetrySaveButton.hidden = true;
+        document.querySelector("#workout-completion-message").textContent =
+          `Seu treino de ${activeWorkout.focus.toLowerCase()} (${activeWorkout.level.toLowerCase()}, ${activeWorkout.duration} min) foi adicionado ao histórico.`;
+        return true;
+      } catch (error) {
+        console.error(error);
+        document.querySelector("#workout-completion-message").textContent =
+          "O treino foi concluído, mas não foi possível salvar no histórico. Você pode tentar salvar novamente ou voltar ao app.";
+        workoutRetrySaveButton.hidden = false;
+        return false;
+      }
+    }
+
+    function finishGuidedWorkout() {
+      workoutCompleted = true;
+      workoutCurrentStep.hidden = true;
+      workoutCompletion.hidden = false;
+      workoutCounter.textContent = "Treino finalizado";
+      workoutProgressBar.style.width = "100%";
+      workoutProgress.setAttribute("aria-valuenow", "100");
+      saveCompletedWorkout();
+    }
+
+    document.querySelector("#workout-previous").addEventListener("click", () => {
+      if (currentWorkoutStep === 0) return;
+      currentWorkoutStep -= 1;
+      renderWorkoutStep();
+    });
+
+    document.querySelector("#workout-next").addEventListener("click", () => {
+      if (!activeWorkout) return;
+      if (currentWorkoutStep === activeWorkout.steps.length - 1) {
+        finishGuidedWorkout();
+        return;
+      }
+      currentWorkoutStep += 1;
+      renderWorkoutStep();
+    });
+
+    document.querySelector("#workout-exit").addEventListener("click", returnFromWorkout);
+    document.querySelector("#workout-return").addEventListener("click", returnFromWorkout);
+    workoutRetrySaveButton.addEventListener("click", saveCompletedWorkout);
+
+    offlinePlanForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(offlinePlanForm);
+      const focus = formData.get("focus");
+      const level = formData.get("level");
+      const duration = Number(formData.get("duration"));
+      const plan = offlinePlanLibrary[focus];
+      const mainExercises = plan && plan[level];
+      const minimumDuration = focus === "Treino completo" ? 20 : 10;
+
+      if (!mainExercises || !Number.isInteger(duration) || duration < minimumDuration || duration > 120) {
+        offlinePlanStatus.textContent = focus === "Treino completo"
+          ? "Para separar aquecimento, quatro fundamentos e volta à calma, escolha de 20 a 120 minutos."
+          : "Escolha um foco, um nível e um tempo entre 10 e 120 minutos.";
+        return;
+      }
+
+      const warmupMinutes = Math.max(2, Math.round(duration * 0.12));
+      const cooldownMinutes = Math.max(2, Math.round(duration * 0.08));
+      const mainMinutes = duration - warmupMinutes - cooldownMinutes;
+      const minutesPerExercise = Math.floor(mainMinutes / mainExercises.length);
+      const extraMinutes = mainMinutes % mainExercises.length;
+      const steps = [warmup, ...mainExercises, cooldown].map((exercise, index, exercises) => {
+        let minutes;
+        if (index === 0) {
+          minutes = warmupMinutes;
+        } else if (index === exercises.length - 1) {
+          minutes = cooldownMinutes;
+        } else {
+          const mainIndex = index - 1;
+          minutes = minutesPerExercise + (mainIndex < extraMinutes ? 1 : 0);
+        }
+        return { ...exercise, minutes };
+      });
+
+      activeWorkout = { focus, level, duration, steps };
+      currentWorkoutStep = 0;
+      workoutCompleted = false;
+      workoutSaved = false;
+      offlinePlanStatus.textContent = "";
+      renderWorkoutStep();
+    });
+
+    const trainingForm = document.querySelector("#training-form");
+    const trainingStatus = document.querySelector("#training-status");
+    const trainingHistory = document.querySelector("#training-history");
+    const trainingStorageKey = "quadra-training-history";
+    let trainingEntries = [];
+    let trainingStorageReady = true;
+
+    function getLocalDate() {
+      const date = new Date();
+      date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+      return date.toISOString().slice(0, 10);
+    }
+
+    const gameForm = document.querySelector("#game-form");
+    const gameStatus = document.querySelector("#game-status");
+    const gameHistory = document.querySelector("#game-history");
+    const gameStorageKey = "quadra-game-history";
+    const championshipForm = document.querySelector("#championship-form");
+    const championshipStatus = document.querySelector("#championship-status");
+    const championshipList = document.querySelector("#championship-list");
+    const championshipSelect = gameForm.elements.namedItem("competitionId");
+    const championshipStorageKey = "quadra-championships";
+    const goalForm = document.querySelector("#goal-form");
+    const goalStatus = document.querySelector("#goal-status");
+    const goalList = document.querySelector("#goal-list");
+    const goalStorageKey = "quadra-training-goals";
+    const gameStatFields = [
+      "minutes", "points", "rebounds", "assists", "steals", "blocks", "turnovers",
+      "fgMade", "fgAttempted", "threeMade", "threeAttempted", "ftMade", "ftAttempted"
+    ];
+    let gameEntries = [];
+    let championships = [];
+    let goalEntries = [];
+    let gameStorageReady = true;
+    let championshipStorageReady = true;
+    let goalStorageReady = true;
+
+    function isNonNegativeInteger(value) {
+      return Number.isInteger(value) && value >= 0;
+    }
+
+    function isValidGameEntry(entry) {
+      return Boolean(
+        entry &&
+        typeof entry.date === "string" &&
+        !Number.isNaN(new Date(`${entry.date}T00:00:00`).getTime()) &&
+        typeof entry.team === "string" &&
+        typeof entry.opponent === "string" &&
+        typeof entry.competition === "string" &&
+        (entry.competitionId === undefined || typeof entry.competitionId === "string") &&
+        gameStatFields.every((field) => isNonNegativeInteger(entry[field])) &&
+        entry.fgMade <= entry.fgAttempted &&
+        entry.threeMade <= entry.threeAttempted &&
+        entry.ftMade <= entry.ftAttempted &&
+        (entry.teamScore === null || isNonNegativeInteger(entry.teamScore)) &&
+        (entry.opponentScore === null || isNonNegativeInteger(entry.opponentScore))
+      );
+    }
+
+    function isValidChampionship(championship) {
+      return Boolean(
+        championship &&
+        typeof championship.id === "string" &&
+        typeof championship.name === "string" &&
+        championship.name.trim() &&
+        typeof championship.team === "string" &&
+        championship.team.trim()
+      );
+    }
+
+    function isValidGoal(goal) {
+      return Boolean(
+        goal &&
+        typeof goal.id === "string" &&
+        typeof goal.title === "string" &&
+        typeof goal.focus === "string" &&
+        isNonNegativeInteger(goal.target) &&
+        goal.target > 0
+      );
+    }
+
+    function formatPercent(made, attempted) {
+      return attempted > 0 ? `${Math.round((made / attempted) * 100)}%` : "—";
+    }
+
+    function renderChampionships(selectedId = championshipSelect.value) {
+      championshipSelect.replaceChildren();
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.disabled = true;
+      placeholder.textContent = championships.length ? "Selecione um campeonato" : "Cadastre um campeonato primeiro";
+      championshipSelect.append(placeholder);
+
+      const orderedChampionships = championships
+        .slice()
+        .sort((first, second) => first.name.localeCompare(second.name, "pt-BR"));
+      orderedChampionships.forEach((championship) => {
+        const option = document.createElement("option");
+        option.value = championship.id;
+        option.textContent = championship.name;
+        championshipSelect.append(option);
+      });
+
+      const hasSelection = orderedChampionships.some((championship) => championship.id === selectedId);
+      if (!hasSelection && orderedChampionships.length === 1) {
+        selectedId = orderedChampionships[0].id;
+      }
+      championshipSelect.value = hasSelection || orderedChampionships.length === 1 ? selectedId : "";
+      placeholder.selected = !championshipSelect.value;
+
+      championshipList.replaceChildren();
+      orderedChampionships.forEach((championship) => {
+        const card = document.createElement("article");
+        card.className = "championship-card";
+        const details = document.createElement("div");
+        const name = document.createElement("strong");
+        name.textContent = championship.name;
+        const team = document.createElement("p");
+        team.textContent = championship.team;
+        details.append(name, team);
+        const editButton = document.createElement("button");
+        editButton.className = "secondary";
+        editButton.type = "button";
+        editButton.dataset.championshipEdit = championship.id;
+        editButton.textContent = "Editar";
+        card.append(details, editButton);
+        championshipList.append(card);
+      });
+
+      updateSelectedTeamPreview();
+    }
+
+    function updateSelectedTeamPreview() {
+      const selectedChampionship = championships.find(
+        (championship) => championship.id === championshipSelect.value
+      );
+      document.querySelector("#game-team-preview").textContent = selectedChampionship
+        ? `Seu time nesta competição: ${selectedChampionship.team}`
+        : "Seu time será preenchido a partir do campeonato escolhido.";
+    }
+
+    function resetChampionshipForm() {
+      championshipForm.reset();
+      championshipForm.elements.namedItem("id").value = "";
+      document.querySelector("#championship-submit").textContent = "Cadastrar campeonato";
+      document.querySelector("#championship-cancel").hidden = true;
+    }
+
+    function renderGameHistory() {
+      gameHistory.replaceChildren();
+
+      if (gameEntries.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "help";
+        emptyMessage.textContent = "Suas partidas registradas vão aparecer aqui.";
+        gameHistory.append(emptyMessage);
+        return;
+      }
+
+      gameEntries
+        .slice()
+        .sort((first, second) => second.date.localeCompare(first.date))
+        .forEach((entry) => {
+          const card = document.createElement("article");
+          card.className = "game-card";
+          const championship = championships.find((item) => item.id === entry.competitionId);
+
+          const title = document.createElement("h3");
+          title.textContent = `${entry.team} vs ${entry.opponent}`;
+          const context = document.createElement("p");
+          context.textContent = [
+            new Date(`${entry.date}T00:00:00`).toLocaleDateString("pt-BR"),
+            championship ? championship.name : entry.competition
+          ].filter(Boolean).join(" · ");
+
+          const score = document.createElement("p");
+          score.textContent = entry.teamScore !== null || entry.opponentScore !== null
+            ? `Placar: ${entry.teamScore === null ? "—" : entry.teamScore} × ${entry.opponentScore === null ? "—" : entry.opponentScore}`
+            : `Desempenho: ${entry.points} pts · ${entry.rebounds} reb · ${entry.assists} ast`;
+
+          const stats = document.createElement("p");
+          stats.textContent =
+            `${entry.minutes} min · ${entry.steals} roubos · ${entry.blocks} tocos · ${entry.turnovers} turnovers · ` +
+            `arremessos ${entry.fgMade}/${entry.fgAttempted} (${formatPercent(entry.fgMade, entry.fgAttempted)}) · ` +
+            `3 pts ${entry.threeMade}/${entry.threeAttempted} · LL ${entry.ftMade}/${entry.ftAttempted}`;
+
+          card.append(title, context, score, stats);
+          gameHistory.append(card);
+        });
+    }
+
+    function countGoalProgress(goal) {
+      return trainingEntries.filter((entry) =>
+        goal.focus === "Qualquer treino" || entry.focus === goal.focus
+      ).length;
+    }
+
+    function renderGoals() {
+      goalList.replaceChildren();
+      const list = document.createElement("ul");
+      list.className = "goal-list";
+
+      if (goalEntries.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "help";
+        emptyMessage.textContent = "Suas metas vão aparecer aqui. O progresso acompanha os treinos salvos.";
+        goalList.append(emptyMessage);
+        return;
+      }
+
+      goalEntries.forEach((goal) => {
+        const item = document.createElement("li");
+        item.className = "goal-card";
+        const title = document.createElement("h3");
+        title.textContent = goal.title;
+        const progressCount = Math.min(countGoalProgress(goal), goal.target);
+        const details = document.createElement("p");
+        details.textContent = `${goal.focus} · ${progressCount} de ${goal.target} treinos`;
+        const progress = document.createElement("progress");
+        progress.className = "goal-progress";
+        progress.max = goal.target;
+        progress.value = progressCount;
+        progress.setAttribute("aria-label", `Progresso: ${progressCount} de ${goal.target} treinos`);
+        const removeButton = document.createElement("button");
+        removeButton.className = "secondary";
+        removeButton.type = "button";
+        removeButton.dataset.goalRemove = goal.id;
+        removeButton.textContent = "Remover meta";
+        item.append(title, details, progress, removeButton);
+        list.append(item);
+      });
+
+      goalList.append(list);
+    }
+
+    function renderEvolution() {
+      const totalGames = gameEntries.length;
+      const total = (field) => gameEntries.reduce((sum, entry) => sum + entry[field], 0);
+      document.querySelector("#metric-games").textContent = String(totalGames);
+      document.querySelector("#metric-points-per-game").textContent =
+        totalGames ? (total("points") / totalGames).toFixed(1) : "0";
+      document.querySelector("#metric-rebounds-per-game").textContent =
+        totalGames ? (total("rebounds") / totalGames).toFixed(1) : "0";
+      document.querySelector("#metric-assists-per-game").textContent =
+        totalGames ? (total("assists") / totalGames).toFixed(1) : "0";
+      document.querySelector("#metric-fg-percent").textContent =
+        formatPercent(total("fgMade"), total("fgAttempted"));
+      document.querySelector("#metric-three-percent").textContent =
+        formatPercent(total("threeMade"), total("threeAttempted"));
+      document.querySelector("#metric-training-count").textContent = String(trainingEntries.length);
+      document.querySelector("#metric-training-minutes").textContent = String(
+        trainingEntries.reduce((sum, entry) => sum + Number(entry.duration || 0), 0)
+      );
+
+      const chart = document.querySelector("#points-chart");
+      chart.replaceChildren();
+      const recentGames = gameEntries
+        .slice()
+        .sort((first, second) => first.date.localeCompare(second.date))
+        .slice(-5);
+      chart.classList.toggle("has-bars", recentGames.length > 0);
+
+      if (recentGames.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "help";
+        emptyMessage.textContent = "Registre partidas para ver seus pontos recentes.";
+        chart.append(emptyMessage);
+      } else {
+        const maxPoints = Math.max(1, ...recentGames.map((entry) => entry.points));
+        recentGames.forEach((entry) => {
+          const column = document.createElement("div");
+          column.className = "bar-chart-column";
+          column.setAttribute("role", "img");
+          column.setAttribute(
+            "aria-label",
+            `${new Date(`${entry.date}T00:00:00`).toLocaleDateString("pt-BR")}: ${entry.points} pontos`
+          );
+          const bar = document.createElement("span");
+          bar.className = "bar-chart-value";
+          bar.style.height = `${Math.max(4, (entry.points / maxPoints) * 100)}%`;
+          const value = document.createElement("span");
+          value.textContent = String(entry.points);
+          const label = document.createElement("span");
+          label.className = "bar-chart-label";
+          label.textContent = new Date(`${entry.date}T00:00:00`).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit"
+          });
+          column.append(value, bar, label);
+          chart.append(column);
+        });
+      }
+
+      renderGoals();
+    }
+
+    try {
+      const savedChampionships = localStorage.getItem(championshipStorageKey);
+      if (savedChampionships) {
+        const parsedChampionships = JSON.parse(savedChampionships);
+        if (
+          !Array.isArray(parsedChampionships) ||
+          parsedChampionships.some((championship) => !isValidChampionship(championship))
+        ) {
+          throw new TypeError("Os campeonatos salvos não têm o formato esperado.");
+        }
+        championships = parsedChampionships;
+      }
+    } catch (error) {
+      console.error(error);
+      championshipStorageReady = false;
+      championshipStatus.textContent = "Não foi possível carregar seus campeonatos.";
+    }
+
+    if (championships.length === 0) {
+      document.querySelector("#championship-manager").open = true;
+    }
+    renderChampionships();
+    championshipSelect.addEventListener("change", updateSelectedTeamPreview);
+
+    championshipForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!championshipStorageReady) {
+        championshipStatus.textContent = "Os campeonatos não estão disponíveis. Reabra a página e tente novamente.";
+        return;
+      }
+
+      const formData = new FormData(championshipForm);
+      const existingId = formData.get("id");
+      const championship = {
+        id: existingId || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: formData.get("name").trim(),
+        team: formData.get("team").trim()
+      };
+      const isEditing = Boolean(existingId);
+      const updatedChampionships = isEditing
+        ? championships.map((item) => item.id === existingId ? championship : item)
+        : [...championships, championship];
+
+      if (isEditing && !championships.some((item) => item.id === existingId)) {
+        championshipStatus.textContent = "Esse campeonato não está mais disponível para edição.";
+        resetChampionshipForm();
+        return;
+      }
+
+      try {
+        localStorage.setItem(championshipStorageKey, JSON.stringify(updatedChampionships));
+        championships = updatedChampionships;
+        renderChampionships(championship.id);
+        renderGameHistory();
+        resetChampionshipForm();
+        championshipStatus.textContent = isEditing
+          ? "Campeonato atualizado."
+          : "Campeonato cadastrado. Ele já está selecionado para a próxima partida.";
+      } catch (error) {
+        console.error(error);
+        championshipStatus.textContent = "Não foi possível salvar o campeonato neste navegador.";
+      }
+    });
+
+    championshipList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-championship-edit]");
+      if (!button) return;
+      const championship = championships.find((item) => item.id === button.dataset.championshipEdit);
+      if (!championship) return;
+
+      championshipForm.elements.namedItem("id").value = championship.id;
+      championshipForm.elements.namedItem("name").value = championship.name;
+      championshipForm.elements.namedItem("team").value = championship.team;
+      document.querySelector("#championship-submit").textContent = "Salvar alterações";
+      document.querySelector("#championship-cancel").hidden = false;
+      document.querySelector("#championship-manager").open = true;
+      championshipForm.elements.namedItem("name").focus();
+    });
+
+    document.querySelector("#championship-cancel").addEventListener("click", () => {
+      resetChampionshipForm();
+      championshipStatus.textContent = "";
+    });
+
+    gameForm.elements.namedItem("date").value = getLocalDate();
+    try {
+      const savedGames = localStorage.getItem(gameStorageKey);
+      if (savedGames) {
+        const parsedGames = JSON.parse(savedGames);
+        if (!Array.isArray(parsedGames) || parsedGames.some((entry) => !isValidGameEntry(entry))) {
+          throw new TypeError("O histórico de partidas salvo não tem o formato esperado.");
+        }
+        gameEntries = parsedGames;
+      }
+      renderGameHistory();
+    } catch (error) {
+      console.error(error);
+      gameStorageReady = false;
+      gameStatus.textContent = "Não foi possível carregar o histórico de partidas.";
+    }
+
+    try {
+      const savedGoals = localStorage.getItem(goalStorageKey);
+      if (savedGoals) {
+        const parsedGoals = JSON.parse(savedGoals);
+        if (!Array.isArray(parsedGoals) || parsedGoals.some((goal) => !isValidGoal(goal))) {
+          throw new TypeError("As metas salvas não têm o formato esperado.");
+        }
+        goalEntries = parsedGoals;
+      }
+    } catch (error) {
+      console.error(error);
+      goalStorageReady = false;
+      goalStatus.textContent = "Não foi possível carregar suas metas.";
+    }
+
+    gameForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!gameStorageReady) {
+        gameStatus.textContent = "O histórico de partidas não está disponível. Reabra a página e tente novamente.";
+        return;
+      }
+
+      const formData = new FormData(gameForm);
+      const selectedChampionship = championships.find(
+        (championship) => championship.id === formData.get("competitionId")
+      );
+      if (!selectedChampionship) {
+        gameStatus.textContent = "Cadastre ou selecione um campeonato antes de registrar a partida.";
+        return;
+      }
+
+      const newEntry = {
+        date: formData.get("date"),
+        competitionId: selectedChampionship.id,
+        team: selectedChampionship.team,
+        opponent: formData.get("opponent").trim(),
+        competition: selectedChampionship.name,
+        teamScore: formData.get("teamScore") === "" ? null : Number(formData.get("teamScore")),
+        opponentScore: formData.get("opponentScore") === "" ? null : Number(formData.get("opponentScore"))
+      };
+      gameStatFields.forEach((field) => {
+        newEntry[field] = Number(formData.get(field));
+      });
+
+      if (
+        newEntry.fgMade > newEntry.fgAttempted ||
+        newEntry.threeMade > newEntry.threeAttempted ||
+        newEntry.ftMade > newEntry.ftAttempted
+      ) {
+        gameStatus.textContent = "Os arremessos convertidos não podem ser maiores que os tentados.";
+        return;
+      }
+
+      const updatedEntries = [newEntry, ...gameEntries];
+      try {
+        localStorage.setItem(gameStorageKey, JSON.stringify(updatedEntries));
+        gameEntries = updatedEntries;
+        renderGameHistory();
+        renderEvolution();
+        window.dispatchEvent(new Event("quadra:games-updated"));
+        gameForm.reset();
+        gameForm.elements.namedItem("date").value = getLocalDate();
+        championshipSelect.value = selectedChampionship.id;
+        updateSelectedTeamPreview();
+        gameStatus.textContent = "Partida salva!";
+      } catch (error) {
+        console.error(error);
+        gameStatus.textContent = "Não foi possível salvar a partida neste navegador.";
+      }
+    });
+
+    goalForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!goalStorageReady) {
+        goalStatus.textContent = "As metas não estão disponíveis. Reabra a página e tente novamente.";
+        return;
+      }
+
+      const formData = new FormData(goalForm);
+      const newGoal = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        title: formData.get("title").trim(),
+        focus: formData.get("focus"),
+        target: Number(formData.get("target"))
+      };
+      const updatedGoals = [...goalEntries, newGoal];
+
+      try {
+        localStorage.setItem(goalStorageKey, JSON.stringify(updatedGoals));
+        goalEntries = updatedGoals;
+        renderEvolution();
+        goalForm.reset();
+        goalForm.elements.namedItem("target").value = "5";
+        goalStatus.textContent = "Meta adicionada!";
+      } catch (error) {
+        console.error(error);
+        goalStatus.textContent = "Não foi possível salvar a meta neste navegador.";
+      }
+    });
+
+    goalList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-goal-remove]");
+      if (!button || !goalStorageReady) return;
+
+      const updatedGoals = goalEntries.filter((goal) => goal.id !== button.dataset.goalRemove);
+      try {
+        localStorage.setItem(goalStorageKey, JSON.stringify(updatedGoals));
+        goalEntries = updatedGoals;
+        renderEvolution();
+        goalStatus.textContent = "Meta removida.";
+      } catch (error) {
+        console.error(error);
+        goalStatus.textContent = "Não foi possível remover a meta neste navegador.";
+      }
+    });
+
+    function renderTrainingHistory(entries) {
+      trainingHistory.replaceChildren();
+
+      if (entries.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "help";
+        emptyMessage.textContent = "Seus treinos salvos vão aparecer aqui.";
+        trainingHistory.append(emptyMessage);
+        return;
+      }
+
+      const list = document.createElement("ul");
+      list.className = "training-list";
+
+      entries
+        .slice()
+        .sort((first, second) => second.date.localeCompare(first.date))
+        .forEach((entry) => {
+          const item = document.createElement("li");
+          item.className = "training-entry";
+
+          const title = document.createElement("h3");
+          title.textContent = entry.focus;
+
+          const details = document.createElement("p");
+          details.textContent = `${new Date(`${entry.date}T00:00:00`).toLocaleDateString("pt-BR")} · ${entry.duration} min`;
+
+          item.append(title, details);
+
+          if (entry.notes) {
+            const notes = document.createElement("p");
+            notes.textContent = entry.notes;
+            item.append(notes);
+          }
+
+          list.append(item);
+        });
+
+      trainingHistory.append(list);
+    }
+
+    trainingForm.elements.namedItem("date").value = getLocalDate();
+
+    try {
+      const savedEntries = localStorage.getItem(trainingStorageKey);
+
+      if (savedEntries) {
+        const parsedEntries = JSON.parse(savedEntries);
+        if (!Array.isArray(parsedEntries)) {
+          throw new TypeError("O histórico salvo não tem o formato esperado.");
+        }
+        trainingEntries = parsedEntries;
+      }
+
+      renderTrainingHistory(trainingEntries);
+      renderEvolution();
+    } catch (error) {
+      console.error(error);
+      trainingStorageReady = false;
+      trainingStatus.textContent = "Não foi possível carregar o histórico de treinos.";
+    }
+
+    trainingForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      if (!trainingStorageReady) {
+        trainingStatus.textContent = "O histórico não está disponível. Reabra a página e tente novamente.";
+        return;
+      }
+
+      const formData = new FormData(trainingForm);
+      const newEntry = {
+        date: formData.get("date"),
+        focus: formData.get("focus"),
+        duration: Number(formData.get("duration")),
+        notes: formData.get("notes").trim()
+      };
+      const updatedEntries = [newEntry, ...trainingEntries];
+
+      try {
+        localStorage.setItem(trainingStorageKey, JSON.stringify(updatedEntries));
+        trainingEntries = updatedEntries;
+        renderTrainingHistory(trainingEntries);
+        renderEvolution();
+        trainingForm.reset();
+        trainingForm.elements.namedItem("date").value = getLocalDate();
+        trainingStatus.textContent = "Treino salvo!";
+      } catch (error) {
+        console.error(error);
+        trainingStatus.textContent = "Não foi possível salvar o treino neste navegador.";
+      }
+    });
+
+    const coachForm = document.querySelector("#coach-form");
+    const coachInput = document.querySelector("#coach-message");
+    const coachChat = document.querySelector("#coach-chat");
+    const coachStatus = document.querySelector("#coach-status");
+    const sendCoachMessageButton = document.querySelector("#send-coach-message");
+    const newCoachChatButton = document.querySelector("#new-coach-chat");
+    const welcomeMessage = {
+      role: "assistant",
+      content: "Oi! O que você quer treinar hoje? Se seus planos ou sua disposição mudarem, me conte e eu ajusto a sugestão."
+    };
+    let coachMessages = [welcomeMessage];
+    let coachStorageReady = true;
+
+    function renderCoachMessages() {
+      coachChat.replaceChildren();
+
+      coachMessages.forEach((message) => {
+        const bubble = document.createElement("div");
+        bubble.className = `chat-message ${message.role}`;
+        bubble.textContent = message.content;
+        coachChat.append(bubble);
+      });
+
+      coachChat.scrollTop = coachChat.scrollHeight;
+    }
+
+    function saveCoachMessages() {
+      try {
+        localStorage.setItem(coachStorageKey, JSON.stringify(coachMessages));
+        return true;
+      } catch (error) {
+        console.error(error);
+        coachStatus.textContent = "A conversa está na tela, mas não foi possível salvá-la neste navegador.";
+        return false;
+      }
+    }
+
+    try {
+      const savedMessages = localStorage.getItem(coachStorageKey);
+
+      if (savedMessages) {
+        const parsedMessages = JSON.parse(savedMessages);
+        if (
+          !Array.isArray(parsedMessages) ||
+          parsedMessages.some((message) =>
+            !message ||
+            !["user", "assistant"].includes(message.role) ||
+            typeof message.content !== "string"
+          )
+        ) {
+          throw new TypeError("A conversa salva não tem o formato esperado.");
+        }
+
+        if (parsedMessages.length > 0) coachMessages = parsedMessages;
+      }
+
+      renderCoachMessages();
+    } catch (error) {
+      console.error(error);
+      coachStorageReady = false;
+      coachStatus.textContent = "Não foi possível carregar a conversa salva. Use “Começar nova conversa” para iniciar outra.";
+      renderCoachMessages();
+    }
+
+    coachForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!coachStorageReady) {
+        coachStatus.textContent = "Comece uma nova conversa antes de enviar mensagens.";
+        return;
+      }
+
+      const message = coachInput.value.trim();
+      if (!message) return;
+
+      coachMessages.push({ role: "user", content: message });
+      saveCoachMessages();
+      renderCoachMessages();
+      coachInput.value = "";
+      coachInput.disabled = true;
+      sendCoachMessageButton.disabled = true;
+      newCoachChatButton.disabled = true;
+      coachStatus.textContent = "Preparando sua sugestão de treino...";
+
+      try {
+        const response = await fetch("/api/coach", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: coachMessages })
+        });
+
+        let result;
+        try {
+          result = await response.json();
+        } catch {
+          throw new Error("O servidor retornou uma resposta que não consegui ler.");
+        }
+
+        if (!response.ok) {
+          throw new Error(result.error || `O servidor respondeu com erro ${response.status}.`);
+        }
+
+        if (typeof result.reply !== "string" || !result.reply.trim()) {
+          throw new Error("O treinador não retornou uma resposta em texto.");
+        }
+
+        coachMessages.push({ role: "assistant", content: result.reply });
+        saveCoachMessages();
+        renderCoachMessages();
+        coachStatus.textContent = "";
+      } catch (error) {
+        console.error(error);
+        coachStatus.textContent = error.message || "Não foi possível obter uma sugestão. Confira a conexão e tente novamente.";
+      } finally {
+        coachInput.disabled = false;
+        sendCoachMessageButton.disabled = false;
+        newCoachChatButton.disabled = false;
+        coachInput.focus();
+      }
+    });
+
+    newCoachChatButton.addEventListener("click", () => {
+      if (coachMessages.some((message) => message.role === "user") &&
+          !window.confirm("Começar outra conversa? A conversa atual será apagada deste navegador.")) {
+        return;
+      }
+
+      try {
+        localStorage.removeItem(coachStorageKey);
+        coachMessages = [welcomeMessage];
+        coachStorageReady = true;
+        coachStatus.textContent = "Nova conversa iniciada.";
+        renderCoachMessages();
+      } catch (error) {
+        console.error(error);
+        coachStatus.textContent = "Não foi possível apagar a conversa salva.";
+      }
+    });
+
+    async function checkCoachAvailability() {
+      if (location.protocol === "file:") {
+        coachStatus.textContent = "Para conversar com a IA, abra o app pelo servidor local. Seus dados atuais continuam neste endereço; baixe um backup antes de mudar.";
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/status");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Não foi possível verificar o servidor.");
+
+        if (!result.configured) {
+          coachStatus.textContent = "O servidor está aberto, mas a chave do Gemini ainda não foi configurada.";
+        }
+      } catch (error) {
+        console.error(error);
+        coachStatus.textContent = error.message || "Não foi possível verificar a conexão com o servidor local.";
+      }
+    }
+
+    checkCoachAvailability();
+
+    const backupStatus = document.querySelector("#backup-status");
+    const importDataInput = document.querySelector("#import-data");
+    const backupKeys = [
+      storageKey,
+      trainingStorageKey,
+      coachStorageKey,
+      gameStorageKey,
+      championshipStorageKey,
+      goalStorageKey
+    ];
+
+    document.querySelector("#export-data").addEventListener("click", () => {
+      try {
+        const data = {};
+        backupKeys.forEach((key) => {
+          const value = localStorage.getItem(key);
+          if (value !== null) data[key] = JSON.parse(value);
+        });
+
+        const backup = {
+          format: "quadra-backup-v1",
+          exportedAt: new Date().toISOString(),
+          data
+        };
+        const file = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+        const downloadUrl = URL.createObjectURL(file);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = `quadra-backup-${getLocalDate()}.json`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+        backupStatus.textContent = "Backup baixado. Guarde esse arquivo em um local seguro.";
+      } catch (error) {
+        console.error(error);
+        backupStatus.textContent = "Não foi possível criar o backup deste navegador.";
+      }
+    });
+
+    importDataInput.addEventListener("change", async () => {
+      const file = importDataInput.files[0];
+      if (!file) return;
+
+      try {
+        const backup = JSON.parse(await file.text());
+        if (!backup || backup.format !== "quadra-backup-v1" || !backup.data || typeof backup.data !== "object") {
+          throw new TypeError("Este arquivo não parece ser um backup do Quadra.");
+        }
+
+        const data = backup.data;
+        if (
+          Object.prototype.hasOwnProperty.call(data, storageKey) &&
+          (!data[storageKey] || typeof data[storageKey] !== "object" || Array.isArray(data[storageKey]))
+        ) {
+          throw new TypeError("O perfil dentro do backup está inválido.");
+        }
+        if (
+          Object.prototype.hasOwnProperty.call(data, trainingStorageKey) &&
+          !Array.isArray(data[trainingStorageKey])
+        ) {
+          throw new TypeError("O histórico de treinos dentro do backup está inválido.");
+        }
+        if (
+          Object.prototype.hasOwnProperty.call(data, coachStorageKey) &&
+          (!Array.isArray(data[coachStorageKey]) ||
+            data[coachStorageKey].some((message) =>
+              !message ||
+              !["user", "assistant"].includes(message.role) ||
+              typeof message.content !== "string"
+            ))
+        ) {
+          throw new TypeError("A conversa dentro do backup está inválida.");
+        }
+        if (
+          Object.prototype.hasOwnProperty.call(data, gameStorageKey) &&
+          (!Array.isArray(data[gameStorageKey]) ||
+            data[gameStorageKey].some((entry) => !isValidGameEntry(entry)))
+        ) {
+          throw new TypeError("O histórico de partidas dentro do backup está inválido.");
+        }
+        if (
+          Object.prototype.hasOwnProperty.call(data, championshipStorageKey) &&
+          (!Array.isArray(data[championshipStorageKey]) ||
+            data[championshipStorageKey].some((championship) => !isValidChampionship(championship)))
+        ) {
+          throw new TypeError("Os campeonatos dentro do backup estão inválidos.");
+        }
+        if (
+          Object.prototype.hasOwnProperty.call(data, goalStorageKey) &&
+          (!Array.isArray(data[goalStorageKey]) ||
+            data[goalStorageKey].some((goal) => !isValidGoal(goal)))
+        ) {
+          throw new TypeError("As metas dentro do backup estão inválidas.");
+        }
+
+        let importedCount = 0;
+        backupKeys.forEach((key) => {
+          if (Object.prototype.hasOwnProperty.call(data, key)) {
+            localStorage.setItem(key, JSON.stringify(data[key]));
+            importedCount += 1;
+          }
+        });
+
+        if (importedCount === 0) {
+          throw new TypeError("O backup não contém dados do Quadra.");
+        }
+
+        backupStatus.textContent = "Backup importado. Atualizando o app...";
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+        backupStatus.textContent = error.message || "Não foi possível importar esse backup.";
+      } finally {
+        importDataInput.value = "";
+      }
+    });
+
+    const installAppButton = document.querySelector("#install-app-button");
+    const installStatus = document.querySelector("#install-status");
+    let pendingInstallPrompt = null;
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      pendingInstallPrompt = event;
+      installAppButton.hidden = false;
+    });
+
+    window.addEventListener("appinstalled", () => {
+      pendingInstallPrompt = null;
+      installAppButton.hidden = true;
+      installStatus.textContent = "Quadra instalado no dispositivo.";
+    });
+
+    installAppButton.addEventListener("click", async () => {
+      if (!pendingInstallPrompt) {
+        installStatus.textContent = "Use o menu do navegador e escolha “Instalar app” ou “Adicionar à Tela de Início”.";
+        return;
+      }
+
+      try {
+        await pendingInstallPrompt.prompt();
+        const choice = await pendingInstallPrompt.userChoice;
+        installStatus.textContent = choice.outcome === "accepted"
+          ? "Instalação iniciada."
+          : "Instalação cancelada. Você pode tentar novamente pelo menu do navegador.";
+      } catch (error) {
+        console.error(error);
+        installStatus.textContent = "Não foi possível iniciar a instalação. Tente pelo menu do navegador.";
+      } finally {
+        pendingInstallPrompt = null;
+        installAppButton.hidden = true;
+      }
+    });
+
+    const isInstallableOrigin =
+      location.protocol === "https:" ||
+      ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
+
+    if (!isInstallableOrigin) {
+      installStatus.textContent = "Para habilitar a instalação, abra o app por HTTPS ou no servidor local.";
+    } else if (!("serviceWorker" in navigator)) {
+      installStatus.textContent = "Este navegador não oferece suporte à instalação offline.";
+    } else {
+      navigator.serviceWorker.register("./sw.js").catch((error) => {
+        console.error(error);
+        installStatus.textContent = "Não foi possível ativar o modo instalável neste navegador.";
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="./supabase-config.js" defer></script>
+  <script src="./community.js" defer></script>
+</body>
+</html>
