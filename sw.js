@@ -1,4 +1,4 @@
-const CACHE_NAME = "quadra-app-shell-v2";
+const CACHE_NAME = "quadra-app-shell-v4";
 const APP_SHELL = [
   "./",
   "./index.html",

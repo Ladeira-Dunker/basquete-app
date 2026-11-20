@@ -1,0 +1,2 @@
+> git pull --tags origin main
+fatal: unable to access 'https://github.com/Ladeira-Dunker/basquete-app.git/': Failed to connect to github.com:443 over proxy 100.86.8.220 after 20584 ms: Could not connect to server
